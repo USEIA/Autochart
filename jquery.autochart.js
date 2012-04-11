@@ -55,37 +55,37 @@
 	function parseIndices(indices, maxIndex){
 		var selectedIndices = [];
 		
-		if(!isNaN(indices)){
-			selectedIndices.push(indices);
-		}
 		if(indices instanceof Array){
 			for(i=0; i<indices.length; i++){
 				if(indices[i] < maxIndex) selectedIndices.push(indices[i]);
 			}
+		}
+		else if(!isNaN(indices)){
+			selectedIndices.push(indices);
 		}
 		else if(typeof indices == 'string'){
 			var indexTokens = indices.split(',');
 			
 			$.each(indexTokens, function(i, token){
 				var index = Number(token),
-				indices;
+				indices, j;
 				
 				if(!isNaN(index))
-					selectedIndices.push(index);
+					selectedIndices.push(parseInt(index, 10));
 				else{
 					if(~token.indexOf('-')){
 						indices = token.split('-');
 						for(
-							j = indices[0];
-							j <= indices[1] && j <= maxIndex;
+							j = parseInt(indices[0], 10);
+							j <= parseInt(indices[1], 10) && j < maxIndex;
 							j++
 						)
-							selectedIndices.push(j);
+							selectedIndices.push(parseInt(j, 10));
 					}
 					else if(~token.indexOf('+')){
 						indices = token.match(/(\d+)\+/);
 						for(j = indices[1]; j < maxIndex; j++)
-							selectedIndices.push(j);
+							selectedIndices.push(parseInt(j, 10));
 					}
 					else{
 						throw 'Invalid index token';
@@ -93,6 +93,11 @@
 				}
 			});
 		}
+		
+		selectedIndices.sort(function(a, b){
+			return a - b;
+		});
+		
 		return selectedIndices;
 	};
 	
@@ -126,38 +131,41 @@
 		};
 	}());
 	
-	function wrapMethod(originalMethod, $uper){
-		return function(){
-			var ret;
-			this.$uper = $uper;
-			ret = originalMethod.apply(this, arguments);
-			this.$uper = void 0;
-			return ret;
-		};
-	};
-	
 	function createClass(/*
 		(properties, $uper)
 		 or
-		(constructor, properites, $uper)
+		(constructor, properties, $uper)
 		*/){
-		var klass, klassProperties, $uper;
+		var klass, klassProperties, superPrototype;
 		if(arguments.length == 3){
 			klass = arguments[0];
 			klassProperties = arguments[1];
-			$uper = arguments[2];
+			superPrototype = arguments[2];
 		}
 		else{
-			klass = new Function;
+			klass = function(){
+				if(typeof this.init == 'function')
+					this.init.apply(this, arguments);
+			};
 			klassProperties = arguments[0];
-			$uper = arguments[1];
+			superPrototype = arguments[1];
 		}
-		if(typeof $uper == 'object'){
-			klass.prototype = chain($uper);
+		if(typeof superPrototype == 'object'){
+			klass.prototype = chain(superPrototype);
 			for(prop in klassProperties){
-				if(typeof klassProperties[prop] == 'function'){
-					klassProperties[prop] = wrapMethod(
-						klassProperties[prop], $uper);
+				if(
+					klassProperties.hasOwnProperty(prop) &&
+					typeof klassProperties[prop] == 'function'
+				){
+					klassProperties[prop] = function(originalMethod, propertyName){
+						return function(){
+							var ret;
+							this.$super = superPrototype[propertyName];
+							ret = originalMethod.apply(this, arguments);
+							this.$super = void 0;
+							return ret;
+						};
+					}(klassProperties[prop], prop)
 				}
 			}
 		}
@@ -177,12 +185,14 @@
 		},
 		applyProperties : function(props, values){
 			var i, prop;
-			for(i in props){
-				prop = props[i];
-				if(values.hasOwnProperty(prop))
-					this[prop] = values[prop];
-				else
-					this[prop] = void 0;
+			if(values){
+				for(i in props){
+					prop = props[i];
+					if(values.hasOwnProperty(prop))
+						this[prop] = values[prop];
+					else
+						this[prop] = void 0;
+				}
 			}
 		}
 	});
@@ -193,7 +203,7 @@
 	
 	var TableElement = createClass({
 		init : function(properties){
-			this.$uper.init.call(this, properties);
+			this.$super(properties);
 			this.applyProperties([
 				'element' // The jQuery wrapper for a unique table dom element
 			], properties);
@@ -217,31 +227,39 @@
 				return this.element.is(':visible');
 			else
 				return false;
+		},
+		isAttached : function(){
+			return this.element.parents().has('body').length > 0;
 		}
 	}, DynamicClass.prototype);
 	
 	var Cell = createClass({
 		init : function(properties){
-			this.$uper.init.call(this, properties);
+			this.$super(properties);
+			if(!this['element']) this['element'] = $('<td></td>');
 			this['originalColspan'] = this.getColspan();
 			this['originalRowspan'] = this.getRowspan();
 		},
 		getValue : function(){
-			return this.element.text();
-		},
-		getHTMLValue : function(){
-			return this.element.html();
-		},
-		getParsedHTMLValue : function(){
 			return this.getHTMLValue()
-				// Strip style tags
-				.replace(/style=".*?"/g, '')
+				// Strip Sub and Sup tags
+				.replace(/<sup>.*?<\/sup>/g, '')
+				.replace(/<sub>.*?<\/sub>/g, '')
 				// Replace spaces with spaces
 				.replace(/&nbsp;/g, ' ')
 				// Replace line breaks with spaces
 				.replace(/<\s*br\s*\/?>/g, ' ')
-				// Strip empty spans
-				.replace(/<\s*span\s*>|<\/\s*span\s*>/g, '');
+				// Strip all other tags
+				.replace(/<.*?>/g, '');
+		},
+		setValue : function(value){
+			this.element.text(value)
+		},
+		getHTMLValue : function(){
+			return this.element.html();
+		},
+		setHTMLValue : function(value){
+			return this.element.html(value);
 		},
 		getColspan : function(){
 			return parseInt(this.element.attr('colspan')) || 1;
@@ -249,36 +267,38 @@
 		getRowspan : function(){
 			return parseInt(this.element.attr('rowspan')) || 1;
 		},
-		setColspan : function(val){
+		setColspan : function(val, updateOriginal){
 			this.element.attr('colspan', val);
+			if(updateOriginal) this['originalColspan'] = val;
 		},
-		setRowspan : function(val){
-			this.element.attr('rowspan', val)
+		setRowspan : function(val, updateOriginal){
+			this.element.attr('rowspan', val);
+			if(updateOriginal) this['originalRowspan'] = val;
 		},
-		deincrementColspan : function(){
+		deincrementColspan : function(updateOriginal){
 			var colspan = this.getColspan();
 			if(colspan > 1)
-				this.setColspan(colspan - 1);
+				this.setColspan(colspan - 1, updateOriginal);
 			else
 				this.hide();
 		},
-		deincrementRowspan : function(){
+		deincrementRowspan : function(updateOriginal){
 			var rowspan = this.getRowspan();
 			if(rowspan > 1)
-				this.setRowspan(rowspan - 1);
+				this.setRowspan(rowspan - 1, updateOriginal);
 			else
 				this.hide();
 		},
 		incrementColspan : function(){
 			var colspan = this.getColspan();
-			if(this.isVisible())
+			if(!this.isAttached() || this.isVisible())
 				this.setColspan(colspan + 1);
 			else
 				this.show();
 		},
 		incrementRowspan : function(){
 			var rowspan = this.getRowspan();
-			if(this.isVisible())
+			if(!this.isAttached() || this.isVisible())
 				this.setRowspan(rowspan + 1);
 			else
 				this.show();
@@ -287,10 +307,21 @@
 	
 	var CellCollection = createClass({
 		init : function(properties){
-			this.$uper.init.call(this, properties)
+			var i, cell;
+			this.$super(properties)
 			this.applyProperties([
 				'cells'
 			], properties);
+			for(cell = this.cells[i=0]; i<this.cells.length; cell = this.cells[++i])
+				if(this.element)
+					if(cell.element.parents().find(this.element).length == 0)
+						cell.element.appendTo(this.element);
+		},
+		addCell : function(index, cell){
+			if(this.element)
+				if(cell.element.parents().find(this.element).length == 0)
+					cell.element.insertAfter(this.cells[index].element);
+			this.cells.splice(index, 0, cell);
 		},
 		getUniqueCells : function(indices){
 			var self = this, lastElement;
@@ -329,13 +360,13 @@
 				c.deincrementRowspan();
 				showElement |= !c.isVisible();
 			});
-			if(!showElement) this.$uper.hide.call(this);
+			if(!showElement) this.$super();
 		},
 		show : function(){
 			$.each(this.cells, function(i, c){
 				c.incrementRowspan();
 			});
-			this.$uper.show.call(this);
+			this.$super();
 		}
 	}, CellCollection.prototype);
 	
@@ -357,7 +388,8 @@
 		function slurpCellCollections(tableEle){
 			var rows = [],
 			columns = [],
-			rowEles = tableEle.find('thead > tr, tbody > tr, tfoot > tr'),
+			rowEles = tableEle.find('tr'),
+			columnEles = tableEle.find('col'),
 			rowCells = [],
 			columnCells = [],
 			row, column, i, j;
@@ -377,8 +409,7 @@
 						for(l = i; l < i + rowspan; l++){
 							if(!rowCells[l]) rowCells[l] = [];
 							cell = rowCells[l][m] =
-								columnCells[m][l] = new Cell();
-							cell.init({
+								columnCells[m][l] = new Cell({
 								'element' : cellEle
 							});
 						}
@@ -387,19 +418,17 @@
 			});
 			
 			for(i=0; i<rowCells.length; i++){
-				row = rows[i] = new Row();
-				row.init({
+				row = rows[i] = new Row({
 					'element' : rowEles.eq(i),
 					'cells' : rowCells[i]
 				});
 			}
 			
 			for(i=0; i<columnCells.length; i++){
-				column = columns[i] = new Column();
-				column.init({
-					'element' : void 0,
+				column = columns[i] = new Column({
+					'element' : columnEles.eq(i),
 					'cells' : columnCells[i]
-				})
+				});
 			}
 			
 			return {
@@ -416,12 +445,28 @@
 				
 				$.extend(properties, slurpCellCollections(tableEle));
 				
-				this.$uper.init(properties);
+				this.$super(properties);
 				
 				this.applyProperties([
 					'rows', // A collection of row objects
 					'columns' // A collection of column objects
 				], properties);
+			},
+			addColumn : function(index, cells){
+				var column = new Column({
+					'cells' : cells
+				});
+				for(var i=0; i< Math.min(this.rows.length, cells.length); i++)
+					this.rows[i].addCell(index, cells[i]);
+				this.columns = this.columns.splice(index, 0, column);
+			},
+			addRow : function(index, cells){
+				var ele = $('<tr></tr>');
+				ele.insertAfter($('tr:eq(' + index + ')', this.element));
+				this.rows = this.rows.splice(index, 0, new Row({
+					'element' : ele,
+					'cells': cells
+				}));
 			}
 		}, TableElement.prototype);
 	}();
@@ -432,9 +477,8 @@
 	
 	var Field = createClass({
 		init : function(properties){
-			this.$uper.init(properties);
+			this.$super(properties);
 			this.applyProperties([
-				'index', // The index of the field in the field collection
 				'isValue', // Whether or not this is a value field
 				'isCategory', // Whether or not this is a category field
 				'units', // If this isValue then the units for the field
@@ -446,19 +490,20 @@
 	
 	var Record = createClass({
 		init : function(properties){
-			this.$uper.init(properties);
+			this.$super(properties);
 			this.applyProperties([
-				'index', // The index of record in the record collection
-				'values', // A hash of the type <field index, parsed value>
 				'isHeader', // Whether or not this is a header record
 				'isData', // Whether or not this is a data record
+				'categoryCells', // The category cells for the record
+				'valueCells', // The value cells for the record
+				'values', // A hash of the type <field index, parsed value>
 			], properties);
 		}
 	}, DynamicClass.prototype);
 	
 	var SparseDataCollection = createClass({
 		init : function(properties){
-			this.$uper.init(properties);
+			this.$super(properties);
 			this.applyProperties([
 				'values',
 				'orderBy'
@@ -527,12 +572,12 @@
 				!isNaN(ops.row) &&
 				!isNaN(ops.column)
 			)
-				ret = this.rows[ops.row]
-					.cells[ops.column].getParsedHTMLValue();
+				ret = this.layoutTable.rows[ops.row]
+					.cells[ops.column].getValue();
 			else if(!isNaN(ops.row))
-				ret = this.rows[ops.row];
+				ret = this.layoutTable.rows[ops.row];
 			else if(!isNaN(ops.column))
-				ret = this.columns[ops.column];
+				ret = this.layoutTable.columns[ops.column];
 			if(
 				ops.regex &&
 				typeof ops.regex.pattern != 'undefined' &&
@@ -560,7 +605,7 @@
 		};
 		
 		function parseUnits(options){
-			if(!options.units){
+			if(options.units === void 0){
 				this.units = void 0;
 			}else{
 				this.units = parseUnitsOrTitle.call(this, options.units);
@@ -575,9 +620,7 @@
 			for(var i=0; i< this.categoryIndices.length; i++){
 				index = this.categoryIndices[i];
 				cellCollection = this.fieldCollection[index];
-				categoryFields[index] = field = new Field;
-				field.init({
-					'index' : index,
+				categoryFields[index] = field = new Field({
 					'cellCollection' : cellCollection,
 					'dataCells' : cellCollection.getUniqueCells(this.dataIndices),
 					'headerCells' : cellCollection.getUniqueCells(this.headerIndices),
@@ -588,9 +631,7 @@
 			for(var i=0; i< this.valueIndices.length; i++){
 				index = this.valueIndices[i];
 				cellCollection = this.fieldCollection[index];
-				valueFields[index] = field = new Field;
-				field.init({
-					'index' : index,
+				valueFields[index] = field = new Field({
 					'cellCollection' : cellCollection,
 					'dataCells' : cellCollection.getUniqueCells(this.dataIndices),
 					'headerCells' : cellCollection.getUniqueCells(this.headerIndices),
@@ -598,22 +639,19 @@
 					'isValue' : true,
 					'units' : typeof this.units == 'string' ?
 						this.units : typeof this.units != 'undefined' ?
-						this.units.cells[index].getParsedHTMLValue() : ''
+						this.units.cells[index].getValue() : ''
 				});
 			}
 			
-			this.fields = new SparseDataCollection;
-			this.fields.init({
+			this.fields = new SparseDataCollection({
 				'values' : $.extend({}, categoryFields, valueFields),
 				'orderBy' : 'ascending'
 			});
-			this.categoryFields = new SparseDataCollection;
-			this.categoryFields.init({
+			this.categoryFields = new SparseDataCollection({
 				'values' : categoryFields,
 				'orderBy' : 'ascending'
 			});
-			this.valueFields = new SparseDataCollection;
-			this.valueFields.init({
+			this.valueFields = new SparseDataCollection({
 				'values' : valueFields,
 				'orderBy' : 'ascending'
 			});
@@ -626,64 +664,62 @@
 			
 			for(var i=0; i<this.headerIndices.length; i++){
 				index = this.headerIndices[i];
-				headerRecords[index] = record = new Record;
 				cellCollection = this.recordCollection[index];
 				values = {};
 				this.fields.each(function(i, j){
 					values[j] = cellCollection.cells[j].getValue();
 				});
-				record.init({
-					'index' : index,
+				headerRecords[index] = record = new Record({
 					'cellCollection' : cellCollection,
 					'isHeader' : true,
 					'isData' : false,
+					'categoryCells' : cellCollection.getUniqueCells(this.categoryIndices),
+					'valueCells' : cellCollection.getUniqueCells(this.valueIndices),
 					'values' : values
 				});
 			}
 			for(var i=0; i<this.dataIndices.length; i++){
 				index = this.dataIndices[i];
 				cellCollection = this.recordCollection[index];
-				dataRecords[index] = record = new Record;
 				values = {};
 				this.fields.each(function(i, j){
 					values[j] = cellCollection.cells[j].getValue();
 				});
-				record.init({
-					'index' : index,
+				dataRecords[index] = record = new Record({
 					'cellCollection' : cellCollection,
 					'isHeader' : true,
 					'isData' : false,
+					'categoryCells' : cellCollection.getUniqueCells(this.categoryIndices),
+					'valueCells' : cellCollection.getUniqueCells(this.valueIndices),
 					'values' : values
 				});
 			}
 			
-			this.records = new SparseDataCollection;
-			this.records.init({
+			this.records = new SparseDataCollection({
 				'values' : $.extend({}, headerRecords, dataRecords),
 				'orderBy' : 'ascending'
 			});
-			this.headerRecords = new SparseDataCollection;
-			this.headerRecords.init({
+			this.headerRecords = new SparseDataCollection({
 				'values' : headerRecords,
 				'orderBy' : 'ascending'
 			});
-			this.dataRecords = new SparseDataCollection;
-			this.dataRecords.init({
+			this.dataRecords = new SparseDataCollection({
 				'values' : dataRecords,
 				'orderBy' : 'ascending'
 			});
 		};
 		
 		return createClass({
-			init : function(tableEle, options){
-				this.$uper.init.call(this, tableEle);
+			init : function(layoutTable, options){
 				
+				this.options = options;
 				// Digest the options
 				this.layout = options.layout;
+				this.layoutTable = layoutTable;
 				this.fieldCollection = this.layout == 'vertical' ?
-					this.rows : this.columns,
+					layoutTable.columns : layoutTable.rows,
 				this.recordCollection = this.layout == 'vertical' ?
-					this.columns : this.rows,
+					layoutTable.rows : layoutTable.columns,
 				// Record Indices;
 				this.headerIndices = parseIndices(
 					options.header, this.recordCollection.length);
@@ -700,8 +736,31 @@
 				parseFields.call(this, options);
 				parseRecords.call(this, options);
 			}
-		}, LayoutTable.prototype);
+		});
 	}();
+	
+	var MultiDataTable = createClass({
+		
+		init : function(tableEle, options, dataTableClass){
+			dataTableClass = dataTableClass || DataTable;
+			var i;
+			
+			this.options = $.map(
+				$.isArray(options) ? options : [options],
+				function(o){
+					return $.extend(true, {}, defaultOptions, o);
+				}
+			);
+			this.dataTables = [];
+			this.layoutTable = new LayoutTable(tableEle)
+			
+			for(i=0; i<this.options.length; i++){
+				this.dataTables.push(
+					new dataTableClass(this.layoutTable, this.options[i])
+				);
+			};
+		}
+	});
 	
 	//////////////////////
 	// Charting Classes //
@@ -709,7 +768,7 @@
 	
 	var ChartElement = createClass({
 		init : function(properties){
-			this.$uper.init.call(this, properties);
+			this.$super(properties);
 			this.applyProperties([
 				'title' // The title of the element
 			], properties);
@@ -718,7 +777,7 @@
 	
 	var Series = createClass({
 		init : function(properties){
-			this.$uper.init.call(this, properties);
+			this.$super(properties);
 			this.applyProperties([
 				'data', // The field for this series
 				'units', // The series units,
@@ -746,7 +805,7 @@
 	
 		return createClass({
 			init : function(properties){
-				this.$uper.init.call(this, properties);
+				this.$super(properties);
 				this.applyProperties([
 					'categories'
 				], properties);
@@ -757,7 +816,7 @@
 	
 	var YAxis = createClass({
 		init : function(properties){
-			this.$uper.init.call(this, properties);
+			this.$super(properties);
 		}
 	}, ChartElement.prototype)
 	
@@ -767,7 +826,8 @@
 			xAxis = {}
 			series = [],
 			yAxes = [],
-			uniqueUnits = [];
+			uniqueUnits = [],
+			unitsMap = {};
 			
 			fieldIndices = parseIndices(
 				fieldIndices, this.fieldCollection.length);
@@ -776,22 +836,25 @@
 				var field = table.valueFields.get(i),
 				serie, axisIndex;
 				
-				if(!~(axisIndex = $.inArray(uniqueUnits, field.units))){
-					uniqueUnits.push(field.units)
-					axisIndex = uniqueUnits.length - 1;
+				if(field.units in unitsMap){
+					axisIndex = unitsMap[field.units];
+				}
+				else{
+					axisIndex = unitsMap[field.units] = uniqueUnits.length;
+					uniqueUnits.push(field.units);
 				}
 				if(field){
-					serie = new Series;
-					serie.init({
+					serie = new Series({
 						'title' : $.map(field.headerCells, function(c, i){
-							return c.getParsedHTMLValue();
+							return c.getValue();
 						}).join(' '),
 						'data' : $.map(field.dataCells, function(c, i){
 							var val = parseFloat(
 								c.getValue()
+								// Strip letters, commas, and spaces
 								.replace(/[A-Za-z,\s]/g, '')
 							)
-							return !isNaN(val) ? val : null;
+							return !isNaN(val) ? val : [null];
 						}),
 						'units' : field.units,
 						'axis' : axisIndex
@@ -801,9 +864,7 @@
 				return serie;
 			});
 			
-			xAxis = new XAxis;
-			
-			xAxis.init({
+			xAxis = new XAxis({
 				'title' : this.categoryFields.map(function(i, j){
 						var field = this;
 						return $.map(field.headerCells, function(c, i){
@@ -812,15 +873,14 @@
 					}).join(' / '),
 				'categories' : this.dataRecords.map(function(i, j){
 					var record = this;
-					return table.categoryFields.map(function(i, j){
-						return record.values[j];
+					return $.map(record.categoryCells, function(cell){
+						return cell.getValue()
 					}).join(' / ');
 				})
 			});
 			
 			yAxes = $.map(uniqueUnits, function(u, i){
-				var axis = new YAxis;
-				axis.init({
+				var axis = new YAxis({
 					'title' : u
 				});
 				return axis;
@@ -855,16 +915,159 @@
 					'type' : chartData.xAxis.isDateTime  ? 'datetime' : 'linear'
 				},
 				'yAxis' : $.map(chartData.yAxes, function(a, i){
-					return {
+					return $.extend({
 						'title' : {
 							'text' : a.title
 						},
 						'opposite' : i % 2
-					};
+					}, baseOptions.yAxis);
 				})
 			});
 		}
 	}, DataTable.prototype);
+	
+	var InteractiveChartableTable = createClass({
+		
+		dataTableClass : ChartableTable,
+		
+		init : function(tableEle, options, onCharted){
+			var chartableTable, checkboxCell, checkboxes,
+			addRows = [], addColumns = [], addGroup, addArray,
+			addIndex, buttonCellStartIndex, buttonCellEndIndex,
+			buttons, checkbox, valueIndex, buttonCell, i, j, k,
+			rowsAdded, columnsAdded;
+			
+			this.$super(tableEle, options, ChartableTable);
+			
+			for(i=0; i<this.dataTables.length; i++){
+				chartableTable = this.dataTables[i];
+				addGroup =  chartableTable.layout == 'vertical' ? addRows : addColumns;
+				addIndex = chartableTable.options.controlsIndex ||
+					chartableTable.headerIndices[chartableTable.headerIndices.length - 1];
+				addArray = addGroup[addIndex] || (addGroup[addIndex] = []);
+				buttonCellStartIndex = chartableTable.categoryIndices[0];
+				buttonCellEndIndex = chartableTable.valueIndices[0];
+				buttonCell = new Cell();
+				checkboxes = $();
+				
+				for(j=buttonCellStartIndex; j<buttonCellEndIndex; j++){
+					addArray[j] = buttonCell;
+					if(j < buttonCellEndIndex - 1)
+						chartableTable.layout == 'vertical' ?
+							buttonCell.incrementColspan(true) :
+							buttonCell.incrementRowspan(true);
+				}
+				for(j=0; j<chartableTable.valueIndices.length; j++){
+					valueIndex = chartableTable.valueIndices[j];
+					addArray[valueIndex] = checkboxCell = new Cell();
+					checkboxes = checkboxes.add(checkbox = this.generateCheckbox(valueIndex));
+					checkboxCell.element.append(checkbox);
+				}
+				buttons = this.generateButtons(checkboxes, chartableTable, onCharted);
+				buttonCell.element.append(buttons.graphButton);
+				buttonCell.element.append(buttons.clearButton);
+			}
+			
+			rowsAdded = 0;
+			columnsAdded = 0;
+			
+			for(i=0; i<addRows.length; i++){
+				if(addRows[i]){
+					for(j=0; j<this.layoutTable.columns.length; j++){
+						if(!addRows[i][j]){
+							addRows[i][j] = new Cell();
+						}
+					}
+				}
+			}
+			
+			for(i=0; i<addColumns.length; i++){
+				if(addColumns[i]){
+					for(j=0; j<this.layoutTable.rows.length; j++){
+						if(!addColumns[i][j]){
+							addColumns[i][j] = this.layoutTable.rows[j].cells[i + 1];
+							addColumns[i][j].incrementColspan();
+						}
+					}
+				}
+			}
+			
+			for(i=0; i<addRows.length; i++){
+				if(addRows[i])
+					this.layoutTable.addRow(i + rowsAdded++, addRows[i]);
+			}
+			
+			for(i=0; i<addColumns.length; i++){
+				if(addColumns[i])
+					this.layoutTable.addColumn(i + columnsAdded++, addColumns[i]);
+			}
+		},
+		
+		generateButtons : function(checkboxes, chartableTable, onCharted){
+			graphButton = $('<button></button>').text('Graph');
+			clearButton = $('<button></button>').text('Clear');
+			
+			graphButton.click(function(){
+				var checked = checkboxes.filter(':checked'),
+				indices = [];
+				
+				checked.each(function(i, ele){
+					indices.push($(ele).data('index'));
+				});
+				
+				if(indices.length > 0)
+					onCharted.call(chartableTable, indices);
+			});
+			
+			clearButton.click(function(){
+				checkboxes.filter(':checked').attr('checked', false);
+			});
+			
+			return {
+				'graphButton' : graphButton,
+				'clearButton' : clearButton
+			};
+		},
+		
+		generateCheckbox : function(dataIndex){
+			return $('<input type="checkbox"></input>').
+				data('index', dataIndex);
+		}
+	}, MultiDataTable.prototype);
+	
+	var FancyboxChartableTable = createClass({
+		init : function(tableEle, options){
+			var self = this,
+			autochartContainerId = 'autochart_container_' + new Date().getTime();
+			
+			this.highchartsDock = $('<div></div>')
+				.css('display', 'none')
+				.appendTo('body');
+			this.highchartsDiv = $('<div></div>')
+				.attr('id', autochartContainerId)
+				.addClass('autochart_container')
+				.appendTo(this.highchartsDock);
+			this.highchartsLink = $('<a></a>')
+				.attr('href', '#' + autochartContainerId)
+				.appendTo(this.highchartsDock)
+				.fancybox();
+			
+			this.$super(tableEle, options, function(indices){
+				if(self.chart){
+					self.chart.destroy();
+					self.chart = null;
+				}
+				self.chart = new Highcharts.Chart(this.createHighchartOptions(indices,
+					$.extend(true, {}, this.options.chartOptions, {
+					chart : {
+						renderTo : self.highchartsDiv.get(0),
+					}
+				})), function(){
+					self.highchartsLink.click();
+				});
+			})
+		}
+	}, InteractiveChartableTable.prototype);
 	
 	//////////////////////
 	// Plugin Functions //
@@ -878,12 +1081,7 @@
 	});
 
 	$.fn.autoChart = function(options){
-		var ops = $.extend(true, {}, options, defaultOptions),
-		table = new ChartableTable;
-		
-		table.init(this, ops);
-		
-		return table;
+		return new FancyboxChartableTable(this, options);
 	};
 	
 }(jQuery))
