@@ -817,6 +817,9 @@
 	var YAxis = createClass({
 		init : function(properties){
 			this.$super(properties);
+			this.applyProperties([
+				'nonZeroMin'
+			], properties);
 		}
 	}, ChartElement.prototype)
 	
@@ -827,7 +830,8 @@
 			series = [],
 			yAxes = [],
 			uniqueUnits = [],
-			unitsMap = {};
+			unitsMap = {},
+			nonZeroMin = false;
 			
 			fieldIndices = parseIndices(
 				fieldIndices, this.fieldCollection.length);
@@ -854,6 +858,7 @@
 								// Strip letters, commas, and spaces
 								.replace(/[A-Za-z,\s]/g, '')
 							)
+							nonZeroMin |= val < 0;
 							return !isNaN(val) ? val : [null];
 						}),
 						'units' : field.units,
@@ -881,7 +886,8 @@
 			
 			yAxes = $.map(uniqueUnits, function(u, i){
 				var axis = new YAxis({
-					'title' : u
+					'title' : u,
+					'nonZeroMin' : nonZeroMin
 				});
 				return axis;
 			});
@@ -895,13 +901,14 @@
 		},
 		createHighchartOptions : function(indices, baseOptions){
 			var chartData = this.getChartData(indices);
+			
 			return $.extend(true, {}, baseOptions, {
 				'title' : {
 					'text' : chartData.title
 				},
 				'series' : $.map(chartData.series, function(s, i){
 					return {
-						'name' : s.title,
+						'name' : s.title + (chartData.yAxes.length > 1 ? '' : '(' + s.units + ')'),
 						'data' : chartData.xAxis.isDateTime ? $.map(s.data,
 							function(d, i){
 								return [[chartData.xAxis.dateCategories[i], d]]
@@ -915,10 +922,12 @@
 					'type' : chartData.xAxis.isDateTime  ? 'datetime' : 'linear'
 				},
 				'yAxis' : $.map(chartData.yAxes, function(a, i){
-					return $.extend({
+					return $.extend(true, {
 						'title' : {
-							'text' : a.title
+							'text' : a.title,
+							'align' : chartData.yAxes.length > 2 ? void 0 : 'middle'
 						},
+						'min' : a.nonZeroMin ? null : 0,
 						'opposite' : i % 2
 					}, baseOptions.yAxis);
 				})
