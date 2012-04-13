@@ -940,7 +940,7 @@
 				},
 				'series' : $.map(chartData.series, function(s, i){
 					return {
-						'name' : s.title + (chartData.yAxes.length > 1 ? '' : '(' + s.units + ')'),
+						'name' : s.title + (chartData.yAxes.length > 1 ? '(' + s.units + ')' : ''),
 						'data' : chartData.xAxis.isDateTime ? $.map(s.data,
 							function(d, i){
 								return [[chartData.xAxis.dateCategories[i], d]]
@@ -957,7 +957,7 @@
 					return $.extend(true, {
 						'title' : {
 							'text' : a.title,
-							'align' : chartData.yAxes.length > 2 ? void 0 : 'middle'
+							'align' : chartData.yAxes.length > 2 ? 'middle' : void 0
 						},
 						'min' : a.nonZeroMin ? null : 0,
 						'opposite' : i % 2
