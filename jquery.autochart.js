@@ -590,6 +590,9 @@
 				}
 			}
 			return ret;
+		},
+		getLength : function(){
+			return this.keys.length;
 		}
 	}, DynamicClass.prototype);
 	
@@ -972,41 +975,52 @@
 		dataTableClass : ChartableTable,
 		
 		init : function(tableEle, options, onCharted){
-			var chartableTable, checkboxCell, checkboxes,
+			var chartableTable, valueCell, checkboxes,
 			addRows = [], addColumns = [], addGroup, addArray,
-			addIndex, buttonCellStartIndex, buttonCellEndIndex,
+			addIndex, categoryCellStartIndex, categoryCellEndIndex,
 			buttons, checkbox, valueIndex, buttonCell, i, j, k,
-			rowsAdded, columnsAdded;
+			rowsAdded, columnsAdded, isMultiChartTable;
 			
 			this.$super(tableEle, options, ChartableTable);
 			
 			for(i=0; i<this.dataTables.length; i++){
 				chartableTable = this.dataTables[i];
+				isMultiChartTable = chartableTable.options.multiChart !== void 0 ?
+					chartableTable.options.multiChart : chartableTable.valueFields.getLength() > 1;
 				addGroup =  chartableTable.layout == 'vertical' ? addRows : addColumns;
 				addIndex = chartableTable.options.controlsIndex ||
 					chartableTable.headerIndices[chartableTable.headerIndices.length - 1];
 				addArray = addGroup[addIndex] || (addGroup[addIndex] = []);
-				buttonCellStartIndex = chartableTable.categoryIndices[0];
-				buttonCellEndIndex = chartableTable.valueIndices[0];
-				buttonCell = new Cell();
-				checkboxes = $();
+				categoryCellStartIndex = chartableTable.categoryIndices[0];
+				categoryCellEndIndex = chartableTable.valueIndices[0];
+				categoryCell = new Cell();
 				
-				for(j=buttonCellStartIndex; j<buttonCellEndIndex; j++){
-					addArray[j] = buttonCell;
-					if(j < buttonCellEndIndex - 1)
+				for(j=categoryCellStartIndex; j<categoryCellEndIndex; j++){
+					addArray[j] = categoryCell;
+					if(j < categoryCellEndIndex - 1)
 						chartableTable.layout == 'vertical' ?
-							buttonCell.incrementColspan(true) :
-							buttonCell.incrementRowspan(true);
+							categoryCell.incrementColspan(true) :
+							categoryCell.incrementRowspan(true);
 				}
+				if(isMultiChartTable)
+					checkboxes = $();
+					
 				for(j=0; j<chartableTable.valueIndices.length; j++){
 					valueIndex = chartableTable.valueIndices[j];
-					addArray[valueIndex] = checkboxCell = new Cell();
-					checkboxes = checkboxes.add(checkbox = this.generateCheckbox(valueIndex));
-					checkboxCell.element.append(checkbox);
+					addArray[valueIndex] = valueCell = new Cell();
+					if(isMultiChartTable){
+						checkboxes = checkboxes.add(checkbox = this.generateMultiChartCheckbox(valueIndex));
+						valueCell.element.append(checkbox);
+					}
+					else{
+						valueCell.element.append(this.generateSingleChartButton(valueIndex, chartableTable, onCharted))
+					}
 				}
-				buttons = this.generateButtons(checkboxes, chartableTable, onCharted);
-				buttonCell.element.append(buttons.graphButton);
-				buttonCell.element.append(buttons.clearButton);
+				if(isMultiChartTable){
+					buttons = this.generateMultiChartButtons(checkboxes, chartableTable, onCharted);
+					categoryCell.element.append(buttons.graphButton);
+					categoryCell.element.append(buttons.clearButton);
+				}
 			}
 			
 			rowsAdded = 0;
@@ -1044,7 +1058,7 @@
 			}
 		},
 		
-		generateButtons : function(checkboxes, chartableTable, onCharted){
+		generateMultiChartButtons : function(checkboxes, chartableTable, onCharted){
 			graphButton = $('<button></button>').text('Graph');
 			clearButton = $('<button></button>').text('Clear');
 			
@@ -1070,10 +1084,20 @@
 			};
 		},
 		
-		generateCheckbox : function(dataIndex){
+		generateMultiChartCheckbox : function(dataIndex){
 			return $('<input type="checkbox"></input>').
 				data('index', dataIndex);
-		}
+		},
+		
+		generateSingleChartButton : function(valueIndex, chartableTable, onCharted){
+			button = $('<button></button>').text('Graph');
+			
+			button.click(function(){
+				onCharted.call(chartableTable, [valueIndex]);
+			});
+			
+			return button;
+		},
 	}, MultiDataTable.prototype);
 	
 	var FancyboxChartableTable = createClass({
