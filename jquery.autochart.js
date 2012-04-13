@@ -273,7 +273,7 @@
 			this['originalRowspan'] = this.getRowspan();
 		},
 		getValue : function(){
-			return this.getHTMLValue()
+			return $.trim(this.getHTMLValue()
 				// Strip Sub and Sup tags
 				.replace(/<sup>.*?<\/sup>/g, '')
 				.replace(/<sub>.*?<\/sub>/g, '')
@@ -282,7 +282,7 @@
 				// Replace line breaks with spaces
 				.replace(/<\s*br\s*\/?>/g, ' ')
 				// Strip all other tags
-				.replace(/<.*?>/g, '');
+				.replace(/<.*?>/g, ''));
 		},
 		setValue : function(value){
 			this.element.text(value)
