@@ -5,22 +5,43 @@
 	///////////////////////////
 	
 	var defaultOptions = {
+		/*
+			Specifies the layout of the table.  A horizontal table has its
+			records as columns, and it's fields as rows. A vertical table
+			has its records as rows, and fields as columns.
+		*/
 		layout : 'horizontal',
-		/* 
+		/*
+			Specify either a text value, or a column/row address for the
+			Title.  Optionally, a regular expression and a match index
+			can be provided to extract a portion of the text in a cell.
+			
 			title : {
 				text : (String or undefined)
 				row : (Number or undefined)
 				column : (Number or undefined)
-				regex : (String or RegEx)
+				regex : {
+					pattern : (String or RegEx)
+					match : (Number)
+				}
 			}
 		*/
 		title : void 0,
-		/* 
+		/*
+			Same as title but for the chart units.  Additionally for the
+			units, if only a row or column is provided, it is assumed
+			that the record contains multiple units that are associated
+			with various fields.  This allows for multiple units to be
+			contained in the same table.
+			
 			units : {
 				text : (String or undefined)
 				row : (Number or undefined)
 				column (Number or undefined)
-				regex : (String or RegEx)
+				regex : {
+					pattern : (String or RegEx)
+					match : (Number)
+				}
 			}
 		*/
 		units : void 0,
@@ -45,7 +66,18 @@
 		/*
 			Same as header but for the value fields
 		*/
-		value : void 0
+		value : void 0,
+		/*
+			Specifies a record index to insert the charting controls,
+			defaults to the last header record
+		*/
+		controlsIndex : void 0,
+		/*
+			Specifies whether or not the table supports multi-charting,
+			defaults to true for multi-field and false for single-field
+			tables
+		*/
+		multiChart : void 0
 	};
 	
 	/////////////////////
