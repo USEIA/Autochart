@@ -1122,14 +1122,13 @@
 					self.chart.destroy();
 					self.chart = null;
 				}
+				self.highchartsLink.click();
 				self.chart = new Highcharts.Chart(this.createHighchartOptions(indices,
 					$.extend(true, {}, this.options.chartOptions, {
 					chart : {
 						renderTo : self.highchartsDiv.get(0),
 					}
-				})), function(){
-					self.highchartsLink.click();
-				});
+				})));
 			})
 		}
 	}, InteractiveChartableTable.prototype);
