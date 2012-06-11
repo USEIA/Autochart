@@ -3,15 +3,15 @@
  *	for charting.  The plugin can also add a set of controls to the table
  *	to allow for series selection, and charting using Highcharts in a
  *	fancybox modal window.
- *
+ *		
  *		defaultOptions = {
- *
+ *			
  *			//	Specifies the layout of the table.  A horizontal table has its
  *			//	records as columns, and it's fields as rows. A vertical table
  *			//	has its records as rows, and fields as columns.
- *
+ *			
  *			layout : 'horizontal',
- *
+ *			
  *			//	Specify either a text value, or a column/row address for the
  *			//	Title.  Optionally, a regular expression and a match index
  *			//	can be provided to extract a portion of the text in a cell.
@@ -27,7 +27,7 @@
  *			//	}
  *			
  *			title : void 0,
- *		
+ *			
  *			//	Same as title but for the chart units.  Additionally for the
  *			//	units, if only a row or column is provided, it is assumed
  *			//	that the record contains multiple units that are associated
@@ -43,9 +43,9 @@
  *			//			match : (Number)
  *			//		}
  *			//	}
- *	
+ *			
  *			units : void 0,
- *		
+ *			
  *			//	Format is {Number} for a specific record, {Number}-{Number}
  *			//	for a range, and {Number}+ for all records after and including a
  *			//	specific record.
@@ -76,12 +76,20 @@
  *			//	Specifies whether or not the table supports multi-charting,
  *			//	defaults to true for multi-field and false for single-field
  *			//	tables
- *		
+ *			
  *			multiChart : void 0,
- *
+ *			
  *			// The maximum number of value fields units that can be charted at one time.
- *
+ *			
  *			maxChartableUnits : 4
+ *			
+ *			// A set of styles to be applied to the chart container.  Any valid css styles
+ *			// can be used here.
+ *			
+ *			chartContainerStyles : {
+ *				height : '600px',
+ *				width : '800px'
+ *			}
  *		};
  *	
  *	@module jQuery.autoChart
@@ -104,7 +112,11 @@
 		value : void 0,
 		controlsIndex : void 0,
 		multiChart : void 0,
-		maxChartableUnits : 4
+		maxChartableUnits : 4,
+		chartContainerStyles : {
+			height : '600px',
+			width : '800px'
+		}
 	};
 	
 	/////////////////////
@@ -1949,6 +1961,7 @@
 					self.chart.destroy();
 					self.chart = null;
 				}
+				self.highchartsDiv.css(this.options.chartContainerStyles);
 				self.highchartsLink.click();
 				self.chart = new Highcharts.Chart(this.createHighchartOptions(indices,
 					$.extend(true, {}, this.options.chartOptions, {
