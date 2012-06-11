@@ -1772,7 +1772,15 @@
 				addArray = addGroup[addIndex] || (addGroup[addIndex] = []);
 				// The category cell where we will add the graph and clear buttons for
 				// multi-chartable tables, or a spacer for single chartable tables
-				categoryCell = new Cell();
+				categoryCell = new Cell(
+					{
+						// If we are adding a column, check the cell in the previous column to see if
+						// it is a th, if so create the category cell as a th, otherwise as a td
+						'element' : chartableTable.layout == 'horizontal' &&
+							chartableTable.layoutTable.rows[chartableTable.categoryIndices[0]].cells[0].element.is('th') ? $('<th></th>') :
+							$('<td></td>')
+					}
+				);
 				// The row/column indices where the category cell will start and end
 				categoryCellStartIndex = chartableTable.categoryIndices[0];
 				categoryCellEndIndex = chartableTable.valueIndices[0];
@@ -1792,7 +1800,7 @@
 				if(isMultiChartTable)
 					checkboxes = $();
 				
-				// Loop through the value indices, adding cells and checkboxes/buttons for mulit/single
+				// Loop through the value indices, adding cells and checkboxes/buttons for multi/single
 				// chartable tables
 				for(j=0; j<chartableTable.valueIndices.length; j++){
 					valueIndex = chartableTable.valueIndices[j];
