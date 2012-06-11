@@ -1,0 +1,1353 @@
+{
+    "project": {
+        "name": "The jQuery.autoChart API",
+        "description": "A jQuery plugin to scrape and chart HTML tables"
+    },
+    "files": {
+        "js\\jquery.autochart.js": {
+            "name": "js\\jquery.autochart.js",
+            "modules": {
+                "jQuery.autoChart": 1
+            },
+            "classes": {
+                "DynamicClass": 1,
+                "TableElement": 1,
+                "Cell": 1,
+                "CellCollection": 1,
+                "Row": 1,
+                "Column": 1,
+                "LayoutTable": 1,
+                "DataCollection": 1,
+                "Field": 1,
+                "Record": 1,
+                "SparseDataCollection": 1,
+                "DataTable": 1
+            },
+            "fors": {},
+            "namespaces": {}
+        }
+    },
+    "modules": {
+        "jQuery.autoChart": {
+            "name": "jQuery.autoChart",
+            "submodules": {},
+            "classes": {
+                "DynamicClass": 1,
+                "TableElement": 1,
+                "Cell": 1,
+                "CellCollection": 1,
+                "Row": 1,
+                "Column": 1,
+                "LayoutTable": 1,
+                "DataCollection": 1,
+                "Field": 1,
+                "Record": 1,
+                "SparseDataCollection": 1,
+                "DataTable": 1
+            },
+            "fors": {},
+            "namespaces": {},
+            "tag": "module",
+            "file": "js\\jquery.autochart.js",
+            "line": 1151,
+            "description": "The jQuery.autoChart plugin scrapes html tables, and exposes the data\nfor charting.  The plugin can also add a set of controls to the table\nto allow for series selection, and charting using Highcharts in a\nfancybox modal window.\n\n\tdefaultOptions = {\n\n\t\t//\tSpecifies the layout of the table.  A horizontal table has its\n\t\t//\trecords as columns, and it's fields as rows. A vertical table\n\t\t//\thas its records as rows, and fields as columns.\n\n\t\tlayout : 'horizontal',\n\n\t\t//\tSpecify either a text value, or a column/row address for the\n\t\t//\tTitle.  Optionally, a regular expression and a match index\n\t\t//\tcan be provided to extract a portion of the text in a cell.\n\t\t//\t\n\t\t//\ttitle : {\n\t\t//\t\ttext : (String or undefined)\n\t\t//\t\trow : (Number or undefined)\n\t\t//\t\tcolumn : (Number or undefined)\n\t\t//\t\tregex : {\n\t\t//\t\t\tpattern : (String or RegEx)\n\t\t//\t\t\tmatch : (Number)\n\t\t//\t\t}\n\t\t//\t}\n\t\t\n\t\ttitle : void 0,\n\t\n\t\t//\tSame as title but for the chart units.  Additionally for the\n\t\t//\tunits, if only a row or column is provided, it is assumed\n\t\t//\tthat the record contains multiple units that are associated\n\t\t//\twith various fields.  This allows for multiple units to be\n\t\t//\tcontained in the same table.\n\t\t//\t\n\t\t//\tunits : {\n\t\t//\t\ttext : (String or undefined)\n\t\t//\t\trow : (Number or undefined)\n\t\t//\t\tcolumn (Number or undefined)\n\t\t//\t\tregex : {\n\t\t//\t\t\tpattern : (String or RegEx)\n\t\t//\t\t\tmatch : (Number)\n\t\t//\t\t}\n\t\t//\t}\n\n\t\tunits : void 0,\n\t\n\t\t//\tFormat is {Number} for a specific record, {Number}-{Number}\n\t\t//\tfor a range, and {Number}+ for all records after and including a\n\t\t//\tspecific record.\n\t\t\n\t\theader : void 0,\n\t\t\n\t\t//\tSame as header but for the data (data) records.\n\t\t\n\t\tdata : void 0,\n\t\t\n\t\t//\tSame as header but for the footer rows (footers are always rows).\n\t\t\n\t\tfooter : void 0,\n\t\t\n\t\t//\tSame as header but for the category fields\n\t\t\n\t\tcategory : void 0,\n\t\t\n\t\t//\tSame as header but for the value fields\n\t\t\n\t\tvalue : void 0,\n\t\t\n\t\t//\tSpecifies a record index to insert the charting controls,\n\t\t//\tdefaults to the last header record\n\t\t\n\t\tcontrolsIndex : void 0,\n\t\t\n\t\t//\tSpecifies whether or not the table supports multi-charting,\n\t\t//\tdefaults to true for multi-field and false for single-field\n\t\t//\ttables\n\t\n\t\tmultiChart : void 0\n\t};",
+            "requires": [
+                "jQuery",
+                "Highcharts",
+                "jQuery.fancybox"
+            ]
+        }
+    },
+    "classes": {
+        "DynamicClass": {
+            "name": "DynamicClass",
+            "shortname": "DynamicClass",
+            "classitems": [],
+            "plugins": [],
+            "extensions": [],
+            "plugin_for": [],
+            "extension_for": [],
+            "module": "jQuery.autoChart",
+            "namespace": "",
+            "file": "js\\jquery.autochart.js",
+            "line": 236,
+            "description": "Base class for most classes in the module.  It allows\nfor classes that take an object as a constructor argument, and\napply a set of the properties from the object to the class instance.\nIf the properties are not found on the object, then the instance\nwill pass hasOwnProperty for the missing properties, with undefined\nvalues.",
+            "is_constructor": 1
+        },
+        "TableElement": {
+            "name": "TableElement",
+            "shortname": "TableElement",
+            "classitems": [],
+            "plugins": [],
+            "extensions": [],
+            "plugin_for": [],
+            "extension_for": [],
+            "module": "jQuery.autoChart",
+            "namespace": "",
+            "file": "js\\jquery.autochart.js",
+            "line": 282,
+            "description": "Base class for most all table elements (cell, row, column).  This class\nis a wrapper for a jQuery element, and provides some utility methods to\ninteract with the underlying element.",
+            "extends": "DynamicClass",
+            "is_constructor": 1
+        },
+        "Cell": {
+            "name": "Cell",
+            "shortname": "Cell",
+            "classitems": [],
+            "plugins": [],
+            "extensions": [],
+            "plugin_for": [],
+            "extension_for": [],
+            "module": "jQuery.autoChart",
+            "namespace": "",
+            "file": "js\\jquery.autochart.js",
+            "line": 369,
+            "description": "Wrapper class for a table cell element.",
+            "extends": "TableElement",
+            "is_constructor": 1
+        },
+        "CellCollection": {
+            "name": "CellCollection",
+            "shortname": "CellCollection",
+            "classitems": [],
+            "plugins": [],
+            "extensions": [],
+            "plugin_for": [],
+            "extension_for": [],
+            "module": "jQuery.autoChart",
+            "namespace": "",
+            "file": "js\\jquery.autochart.js",
+            "line": 533,
+            "description": "Base class for cell collections (Row, Column).",
+            "extends": "TableElement",
+            "is_constructor": 1
+        },
+        "Row": {
+            "name": "Row",
+            "shortname": "Row",
+            "classitems": [],
+            "plugins": [],
+            "extensions": [],
+            "plugin_for": [],
+            "extension_for": [],
+            "module": "jQuery.autoChart",
+            "namespace": "",
+            "file": "js\\jquery.autochart.js",
+            "line": 628,
+            "description": "Wraps a row element and proxies it's collection of cells.",
+            "extends": "CellCollection",
+            "is_constructor": 1
+        },
+        "Column": {
+            "name": "Column",
+            "shortname": "Column",
+            "classitems": [],
+            "plugins": [],
+            "extensions": [],
+            "plugin_for": [],
+            "extension_for": [],
+            "module": "jQuery.autoChart",
+            "namespace": "",
+            "file": "js\\jquery.autochart.js",
+            "line": 664,
+            "description": "Wraps a colulmn element and proxies it's collection of cells.",
+            "extends": "CellCollection",
+            "is_constructor": 1
+        },
+        "LayoutTable": {
+            "name": "LayoutTable",
+            "shortname": "LayoutTable",
+            "classitems": [],
+            "plugins": [],
+            "extensions": [],
+            "plugin_for": [],
+            "extension_for": [],
+            "module": "jQuery.autoChart",
+            "namespace": "",
+            "file": "js\\jquery.autochart.js",
+            "line": 696,
+            "description": "Parses and proxies an HTML table as a set of Row and Column collections.",
+            "extends": "TableElement",
+            "is_constructor": 1
+        },
+        "DataCollection": {
+            "name": "DataCollection",
+            "shortname": "DataCollection",
+            "classitems": [],
+            "plugins": [],
+            "extensions": [],
+            "plugin_for": [],
+            "extension_for": [],
+            "module": "jQuery.autoChart",
+            "namespace": "",
+            "file": "js\\jquery.autochart.js",
+            "line": 851,
+            "description": "Base class for all data collections (Record and Field)",
+            "extends": "DynamicClass",
+            "is_constructor": 1
+        },
+        "Field": {
+            "name": "Field",
+            "shortname": "Field",
+            "classitems": [],
+            "plugins": [],
+            "extensions": [],
+            "plugin_for": [],
+            "extension_for": [],
+            "module": "jQuery.autoChart",
+            "namespace": "",
+            "file": "js\\jquery.autochart.js",
+            "line": 880,
+            "description": "A collection of cells that represent a field. Fields can be one of two types:\n\n1. Value Fields: Represent data series in a table.\n1. Category Fields: Contain category values that correlate to the data contained in value fields.\n\nFields contain two sub collections (arrays):\n\n1. Header Cells: These cells describe the data cells.\n1. Data Cells: These cells contain values and categories for value and category fields respectively.",
+            "extends": "DataCollection",
+            "is_constructor": 1
+        },
+        "Record": {
+            "name": "Record",
+            "shortname": "Record",
+            "classitems": [],
+            "plugins": [],
+            "extensions": [],
+            "plugin_for": [],
+            "extension_for": [],
+            "module": "jQuery.autoChart",
+            "namespace": "",
+            "file": "js\\jquery.autochart.js",
+            "line": 951,
+            "description": "A collection of cells that represent a record. Records can be one of two types:\n\n1. Header Records: Describe the data contained in the record.  These headers can contain\ncategories, series descriptions, unit descriptions, and table descriptions.\n1. Data Records: Contain category values that correlate to the data contained in value fields.\n\nRecords contain two sub collections (arrays):\n\n1. Category Cells: These cells contain the category for the record (year, region, ect.).\n1. Value Cells: These cells contain values for the record.",
+            "extends": "DataCollection",
+            "is_constructor": 1
+        },
+        "SparseDataCollection": {
+            "name": "SparseDataCollection",
+            "shortname": "SparseDataCollection",
+            "classitems": [],
+            "plugins": [],
+            "extensions": [],
+            "plugin_for": [],
+            "extension_for": [],
+            "module": "jQuery.autoChart",
+            "namespace": "",
+            "file": "js\\jquery.autochart.js",
+            "line": 1015,
+            "description": "A collection that proxies a sparse array or array like object. This allows for a table\nto skip physical rows and columns when creating fields and records, maintaning both a\nrelative index for the record among the records/fields in the table, as well as an\nabsolute index that represents the physical index of the Row or Column in the table.",
+            "extends": "DynamicClass",
+            "is_constructor": 1
+        },
+        "DataTable": {
+            "name": "DataTable",
+            "shortname": "DataTable",
+            "classitems": [],
+            "plugins": [],
+            "extensions": [],
+            "plugin_for": [],
+            "extension_for": [],
+            "module": "jQuery.autoChart",
+            "namespace": "",
+            "file": "js\\jquery.autochart.js",
+            "line": 1151,
+            "description": "The data counterpart to LayoutTable.  While the former is a collection of Rows and Columns, this is\na collection of Fields and Records."
+        }
+    },
+    "classitems": [
+        {
+            "file": "js\\jquery.autochart.js",
+            "line": 249,
+            "description": "Constructor Function DynamicClass",
+            "itemtype": "method",
+            "name": "init",
+            "params": [
+                {
+                    "name": "values",
+                    "description": "An object containing properties to be applied to the class.",
+                    "type": "Object"
+                }
+            ],
+            "class": "DynamicClass",
+            "module": "jQuery.autoChart"
+        },
+        {
+            "file": "js\\jquery.autochart.js",
+            "line": 257,
+            "description": "Applies properties from a value object to the class instance.",
+            "itemtype": "method",
+            "name": "applyProperties",
+            "params": [
+                {
+                    "name": "props",
+                    "description": "An array of strings representing keys on the value object.",
+                    "type": "Array"
+                },
+                {
+                    "name": "values",
+                    "description": "An object containing values to be applied to the class instance.",
+                    "type": "Object"
+                }
+            ],
+            "return": {
+                "description": "",
+                "type": "Void"
+            },
+            "class": "DynamicClass",
+            "module": "jQuery.autoChart"
+        },
+        {
+            "file": "js\\jquery.autochart.js",
+            "line": 293,
+            "description": "Constructor Function TableElement",
+            "itemtype": "method",
+            "name": "init",
+            "params": [
+                {
+                    "name": "values",
+                    "description": "An object containing properties to be applied to the class",
+                    "type": "Object"
+                }
+            ],
+            "class": "TableElement",
+            "module": "jQuery.autoChart"
+        },
+        {
+            "file": "js\\jquery.autochart.js",
+            "line": 302,
+            "description": "The jQuery wrapper for a unique table dom element",
+            "itemtype": "property",
+            "name": "element",
+            "type": "{jQuery}",
+            "readonly": "",
+            "class": "TableElement",
+            "module": "jQuery.autoChart"
+        },
+        {
+            "file": "js\\jquery.autochart.js",
+            "line": 312,
+            "description": "Checks to see if this TableElement instance wraps the same element as the\npassed TableElement.",
+            "itemtype": "method",
+            "name": "equals",
+            "params": [
+                {
+                    "name": "other",
+                    "description": "A TableElement to check equivilency against.",
+                    "type": "TableElement"
+                }
+            ],
+            "return": {
+                "description": "",
+                "type": "Boolean"
+            },
+            "class": "TableElement",
+            "module": "jQuery.autoChart"
+        },
+        {
+            "file": "js\\jquery.autochart.js",
+            "line": 326,
+            "description": "Hides the wrapped element.",
+            "itemtype": "method",
+            "name": "hide",
+            "return": {
+                "description": "",
+                "type": "Void"
+            },
+            "class": "TableElement",
+            "module": "jQuery.autoChart"
+        },
+        {
+            "file": "js\\jquery.autochart.js",
+            "line": 336,
+            "description": "Shows the wrapped element.",
+            "itemtype": "method",
+            "name": "show",
+            "return": {
+                "description": "",
+                "type": "Void"
+            },
+            "class": "TableElement",
+            "module": "jQuery.autoChart"
+        },
+        {
+            "file": "js\\jquery.autochart.js",
+            "line": 346,
+            "description": "Checks to see if the wrapped element is visible.",
+            "itemtype": "method",
+            "name": "isVisible",
+            "return": {
+                "description": "",
+                "type": "Boolean"
+            },
+            "class": "TableElement",
+            "module": "jQuery.autoChart"
+        },
+        {
+            "file": "js\\jquery.autochart.js",
+            "line": 358,
+            "description": "Checks to see if the wrapped element is attached to the dom.",
+            "itemtype": "method",
+            "name": "isAttached",
+            "return": {
+                "description": "",
+                "type": "Boolean"
+            },
+            "class": "TableElement",
+            "module": "jQuery.autoChart"
+        },
+        {
+            "file": "js\\jquery.autochart.js",
+            "line": 377,
+            "description": "Constructor Function Cell",
+            "itemtype": "method",
+            "name": "init",
+            "params": [
+                {
+                    "name": "values",
+                    "description": "An object containing properties to be applied to the class",
+                    "type": "Object"
+                }
+            ],
+            "class": "Cell",
+            "module": "jQuery.autoChart"
+        },
+        {
+            "file": "js\\jquery.autochart.js",
+            "line": 386,
+            "description": "The wrapped cell's original colspan.",
+            "itemtype": "property",
+            "name": "originalColspan",
+            "type": "{integer}",
+            "readonly": "",
+            "class": "Cell",
+            "module": "jQuery.autoChart"
+        },
+        {
+            "file": "js\\jquery.autochart.js",
+            "line": 394,
+            "description": "The wrapped cell's original rowspan.",
+            "itemtype": "property",
+            "name": "originalRowspan",
+            "type": "{integer}",
+            "readonly": "",
+            "class": "Cell",
+            "module": "jQuery.autoChart"
+        },
+        {
+            "file": "js\\jquery.autochart.js",
+            "line": 403,
+            "description": "Returns the value of the cell.  This value is derived from the\nhtml value, with trailing and leading whitspace, as well as\ntags and html entities removed.",
+            "itemtype": "method",
+            "name": "getValue",
+            "return": {
+                "description": "",
+                "type": "String"
+            },
+            "class": "Cell",
+            "module": "jQuery.autoChart"
+        },
+        {
+            "file": "js\\jquery.autochart.js",
+            "line": 423,
+            "description": "Sets the HTML Value of the table cell.",
+            "itemtype": "method",
+            "name": "setValue",
+            "return": {
+                "description": "",
+                "type": "Void"
+            },
+            "class": "Cell",
+            "module": "jQuery.autoChart"
+        },
+        {
+            "file": "js\\jquery.autochart.js",
+            "line": 432,
+            "description": "Returns the current colspan of the table cell element",
+            "itemtype": "method",
+            "name": "getColspan",
+            "return": {
+                "description": "",
+                "type": "Ingeger"
+            },
+            "class": "Cell",
+            "module": "jQuery.autoChart"
+        },
+        {
+            "file": "js\\jquery.autochart.js",
+            "line": 441,
+            "description": "Returns the current rowspan of the table cell element",
+            "itemtype": "method",
+            "name": "getRowspan",
+            "return": {
+                "description": "",
+                "type": "Integer"
+            },
+            "class": "Cell",
+            "module": "jQuery.autoChart"
+        },
+        {
+            "file": "js\\jquery.autochart.js",
+            "line": 450,
+            "description": "Sets the colspan of the table cell element",
+            "itemtype": "method",
+            "name": "setColspan",
+            "return": {
+                "description": "",
+                "type": "Void"
+            },
+            "class": "Cell",
+            "module": "jQuery.autoChart"
+        },
+        {
+            "file": "js\\jquery.autochart.js",
+            "line": 460,
+            "description": "Sets the rowspan of the table cell element",
+            "itemtype": "method",
+            "name": "setRowspan",
+            "return": {
+                "description": "",
+                "type": "Void"
+            },
+            "class": "Cell",
+            "module": "jQuery.autoChart"
+        },
+        {
+            "file": "js\\jquery.autochart.js",
+            "line": 470,
+            "description": "Deincrements the colspan of the element.  If the\ndeincremented colspan is zero, then the element is\nhidden.",
+            "itemtype": "method",
+            "name": "deincrementColspan",
+            "return": {
+                "description": "",
+                "type": "Void"
+            },
+            "class": "Cell",
+            "module": "jQuery.autoChart"
+        },
+        {
+            "file": "js\\jquery.autochart.js",
+            "line": 485,
+            "description": "Deincrements the rowspan of the element.  If the\ndeincremented rowspan is zero, then the element is\nhidden.",
+            "itemtype": "method",
+            "name": "deincrementRowspan",
+            "return": {
+                "description": "",
+                "type": "Void"
+            },
+            "class": "Cell",
+            "module": "jQuery.autoChart"
+        },
+        {
+            "file": "js\\jquery.autochart.js",
+            "line": 500,
+            "description": "Increments the colspan of the element.  If the\ncurrent colspan is zero, then the element is\nshown.",
+            "itemtype": "method",
+            "name": "incrementColspan",
+            "return": {
+                "description": "",
+                "type": "Void"
+            },
+            "class": "Cell",
+            "module": "jQuery.autoChart"
+        },
+        {
+            "file": "js\\jquery.autochart.js",
+            "line": 515,
+            "description": "Increments the rowspan of the element.  If the\ncurrent rowspan is zero, then the element is\nshown.",
+            "itemtype": "method",
+            "name": "incrementRowspan",
+            "return": {
+                "description": "",
+                "type": "Void"
+            },
+            "class": "Cell",
+            "module": "jQuery.autoChart"
+        },
+        {
+            "file": "js\\jquery.autochart.js",
+            "line": 541,
+            "description": "Constructor Function CellCollection",
+            "itemtype": "method",
+            "name": "init",
+            "params": [
+                {
+                    "name": "values",
+                    "description": "An object containing properties to be applied to the class.",
+                    "type": "Object"
+                }
+            ],
+            "class": "CellCollection",
+            "module": "jQuery.autoChart"
+        },
+        {
+            "file": "js\\jquery.autochart.js",
+            "line": 551,
+            "description": "An array of Cell objects proxied by this collection.",
+            "itemtype": "property",
+            "name": "cells",
+            "type": "{array}",
+            "readonly": "",
+            "class": "CellCollection",
+            "module": "jQuery.autoChart"
+        },
+        {
+            "file": "js\\jquery.autochart.js",
+            "line": 565,
+            "description": "Adds a Cell element to the cell collection.",
+            "itemtype": "method",
+            "name": "addCell",
+            "params": [
+                {
+                    "name": "index",
+                    "description": "the index in the collection where the element will be added.",
+                    "type": "Integer"
+                },
+                {
+                    "name": "cell",
+                    "description": "the Cell element to add to the collection.",
+                    "type": "Cell"
+                }
+            ],
+            "return": {
+                "description": "",
+                "type": "Void"
+            },
+            "class": "CellCollection",
+            "module": "jQuery.autoChart"
+        },
+        {
+            "file": "js\\jquery.autochart.js",
+            "line": 579,
+            "description": "Returns an array of unique cells from a given set of indices.",
+            "itemtype": "method",
+            "name": "getUniqueCells",
+            "params": [
+                {
+                    "name": "indices",
+                    "description": "An array of integers representing indices in the collection.",
+                    "type": "Array"
+                }
+            ],
+            "return": {
+                "description": "",
+                "type": "Array"
+            },
+            "class": "CellCollection",
+            "module": "jQuery.autoChart"
+        },
+        {
+            "file": "js\\jquery.autochart.js",
+            "line": 599,
+            "description": "Returns an array of values from a given set of indices.",
+            "itemtype": "method",
+            "name": "getCellValues",
+            "params": [
+                {
+                    "name": "indices",
+                    "description": "An array of integers representing indices in the collection.",
+                    "type": "Array"
+                }
+            ],
+            "return": {
+                "description": "",
+                "type": "Array"
+            },
+            "class": "CellCollection",
+            "module": "jQuery.autoChart"
+        },
+        {
+            "file": "js\\jquery.autochart.js",
+            "line": 613,
+            "description": "Overridden method",
+            "itemtype": "method",
+            "name": "isVisible",
+            "return": {
+                "description": "",
+                "type": "Boolean"
+            },
+            "class": "CellCollection",
+            "module": "jQuery.autoChart"
+        },
+        {
+            "file": "js\\jquery.autochart.js",
+            "line": 636,
+            "description": "Overridden method.",
+            "itemtype": "method",
+            "name": "hide",
+            "return": {
+                "description": "",
+                "type": "Void"
+            },
+            "class": "Row",
+            "module": "jQuery.autoChart"
+        },
+        {
+            "file": "js\\jquery.autochart.js",
+            "line": 650,
+            "description": "Overridden method.",
+            "itemtype": "method",
+            "name": "show",
+            "return": {
+                "description": "",
+                "type": "Void"
+            },
+            "class": "Row",
+            "module": "jQuery.autoChart"
+        },
+        {
+            "file": "js\\jquery.autochart.js",
+            "line": 672,
+            "description": "Overridden method.",
+            "itemtype": "method",
+            "name": "hide",
+            "return": {
+                "description": "",
+                "type": "Void"
+            },
+            "class": "Column",
+            "module": "jQuery.autoChart"
+        },
+        {
+            "file": "js\\jquery.autochart.js",
+            "line": 683,
+            "description": "Overridden method.",
+            "itemtype": "method",
+            "name": "show",
+            "return": {
+                "description": "",
+                "type": "Void"
+            },
+            "class": "Column",
+            "module": "jQuery.autoChart"
+        },
+        {
+            "file": "js\\jquery.autochart.js",
+            "line": 705,
+            "description": "Parses and HTML table into columns and rows.",
+            "access": "private",
+            "tagname": "",
+            "itemtype": "method",
+            "name": "slurpCellCollections",
+            "params": [
+                {
+                    "name": "tableEle",
+                    "description": "The table element to be slurped",
+                    "type": "JQuery"
+                }
+            ],
+            "class": "LayoutTable",
+            "module": "jQuery.autoChart"
+        },
+        {
+            "file": "js\\jquery.autochart.js",
+            "line": 780,
+            "description": "LayoutTable Constructor Function",
+            "itemtype": "method",
+            "name": "init",
+            "params": [
+                {
+                    "name": "tableEle",
+                    "description": "The table element to be proxied.",
+                    "type": "JQuery"
+                }
+            ],
+            "class": "LayoutTable",
+            "module": "jQuery.autoChart"
+        },
+        {
+            "file": "js\\jquery.autochart.js",
+            "line": 796,
+            "description": "An array of Row collections",
+            "itemtype": "property",
+            "name": "rows",
+            "type": "{array}",
+            "class": "LayoutTable",
+            "module": "jQuery.autoChart"
+        },
+        {
+            "file": "js\\jquery.autochart.js",
+            "line": 803,
+            "description": "An array of Column collections",
+            "itemtype": "property",
+            "name": "columns",
+            "type": "{array}",
+            "class": "LayoutTable",
+            "module": "jQuery.autoChart"
+        },
+        {
+            "file": "js\\jquery.autochart.js",
+            "line": 812,
+            "description": "Adds a set of cells at the specified index as a column in the table",
+            "itemtype": "method",
+            "name": "addColumn",
+            "params": [
+                {
+                    "name": "index",
+                    "description": "The index for the newly created column.",
+                    "type": "Integer"
+                },
+                {
+                    "name": "cells",
+                    "description": "An array of cells to populate the new column.",
+                    "type": "Array"
+                }
+            ],
+            "return": {
+                "description": "",
+                "type": "Void"
+            },
+            "class": "LayoutTable",
+            "module": "jQuery.autoChart"
+        },
+        {
+            "file": "js\\jquery.autochart.js",
+            "line": 828,
+            "description": "Adds a set of cells at the specified index as a row in the table",
+            "itemtype": "method",
+            "name": "addRow",
+            "params": [
+                {
+                    "name": "index",
+                    "description": "The index for the newly created row.",
+                    "type": "Integer"
+                },
+                {
+                    "name": "cells",
+                    "description": "An array of cells to populate the new row.",
+                    "type": "Array"
+                }
+            ],
+            "return": {
+                "description": "",
+                "type": "Void"
+            },
+            "class": "LayoutTable",
+            "module": "jQuery.autoChart"
+        },
+        {
+            "file": "js\\jquery.autochart.js",
+            "line": 859,
+            "description": "DataCollection Constructor Function",
+            "itemtype": "method",
+            "name": "init",
+            "params": [
+                {
+                    "name": "values",
+                    "description": "An object containing properties to be applied to the class",
+                    "type": "Object"
+                }
+            ],
+            "class": "DataCollection",
+            "module": "jQuery.autoChart"
+        },
+        {
+            "file": "js\\jquery.autochart.js",
+            "line": 868,
+            "description": "The cell collection (Row, Column) that this data collection proxies",
+            "itemtype": "property",
+            "name": "cellCollection",
+            "type": "{CellCollection}",
+            "readonly": "",
+            "class": "DataCollection",
+            "module": "jQuery.autoChart"
+        },
+        {
+            "file": "js\\jquery.autochart.js",
+            "line": 896,
+            "description": "Field Class Constructor",
+            "itemtype": "method",
+            "name": "init",
+            "params": [
+                {
+                    "name": "values",
+                    "description": "An object containing properties to be applied to the class.",
+                    "type": "Object"
+                }
+            ],
+            "class": "Field",
+            "module": "jQuery.autoChart"
+        },
+        {
+            "file": "js\\jquery.autochart.js",
+            "line": 905,
+            "description": "Specifies whether or not this is a value field.",
+            "itemtype": "property",
+            "name": "isValue",
+            "type": "{boolean}",
+            "readonly": "",
+            "class": "Field",
+            "module": "jQuery.autoChart"
+        },
+        {
+            "file": "js\\jquery.autochart.js",
+            "line": 913,
+            "description": "Specifies whether or not this is a category field.",
+            "itemtype": "property",
+            "name": "isCategory",
+            "type": "{boolean}",
+            "readonly": "",
+            "class": "Field",
+            "module": "jQuery.autoChart"
+        },
+        {
+            "file": "js\\jquery.autochart.js",
+            "line": 921,
+            "description": "If this isValue then the units for the field",
+            "itemtype": "property",
+            "name": "units",
+            "type": "{string}",
+            "readonly": "",
+            "class": "Field",
+            "module": "jQuery.autoChart"
+        },
+        {
+            "file": "js\\jquery.autochart.js",
+            "line": 929,
+            "description": "An array of cells that are the header cells for this\nfield.",
+            "itemtype": "property",
+            "name": "headerCells",
+            "type": "{array}",
+            "readonly": "",
+            "class": "Field",
+            "module": "jQuery.autoChart"
+        },
+        {
+            "file": "js\\jquery.autochart.js",
+            "line": 938,
+            "description": "An array of cells that are the data cells for this\nfield.",
+            "itemtype": "property",
+            "name": "dataCells",
+            "type": "{array}",
+            "readonly": "",
+            "class": "Field",
+            "module": "jQuery.autoChart"
+        },
+        {
+            "file": "js\\jquery.autochart.js",
+            "line": 971,
+            "description": "Specifies whether or not this is a header record",
+            "itemtype": "property",
+            "name": "isHeader",
+            "type": "{boolean}",
+            "readonly": "",
+            "class": "Record",
+            "module": "jQuery.autoChart"
+        },
+        {
+            "file": "js\\jquery.autochart.js",
+            "line": 979,
+            "description": "Specifies whether or not this is a data record",
+            "itemtype": "property",
+            "name": "isData",
+            "type": "{boolean}",
+            "readonly": "",
+            "class": "Record",
+            "module": "jQuery.autoChart"
+        },
+        {
+            "file": "js\\jquery.autochart.js",
+            "line": 987,
+            "description": "An array of cells that are the category cells for the record",
+            "itemtype": "property",
+            "name": "categoryCells",
+            "type": "{array}",
+            "readonly": "",
+            "class": "Record",
+            "module": "jQuery.autoChart"
+        },
+        {
+            "file": "js\\jquery.autochart.js",
+            "line": 995,
+            "description": "An array of cells that are the value cells for the record.",
+            "itemtype": "property",
+            "name": "valueCells",
+            "type": "{array}",
+            "readonly": "",
+            "class": "Record",
+            "module": "jQuery.autoChart"
+        },
+        {
+            "file": "js\\jquery.autochart.js",
+            "line": 1003,
+            "description": "A hash (object) of <field index, value> for the value cells",
+            "itemtype": "property",
+            "name": "values",
+            "type": "{object}",
+            "readonly": "",
+            "class": "Record",
+            "module": "jQuery.autoChart"
+        },
+        {
+            "file": "js\\jquery.autochart.js",
+            "line": 1026,
+            "description": "SparseDataCollection Constructor Function",
+            "itemtype": "method",
+            "name": "init",
+            "params": [
+                {
+                    "name": "values",
+                    "description": "An object containing properties to be applied to the class.",
+                    "type": "Object"
+                }
+            ],
+            "class": "SparseDataCollection",
+            "module": "jQuery.autoChart"
+        },
+        {
+            "file": "js\\jquery.autochart.js",
+            "line": 1035,
+            "description": "The array or array like object proxied by the collection.",
+            "itemtype": "property",
+            "name": "values",
+            "type": "{object}",
+            "readonly": "",
+            "class": "SparseDataCollection",
+            "module": "jQuery.autoChart"
+        },
+        {
+            "file": "js\\jquery.autochart.js",
+            "line": 1043,
+            "description": "Specifies how the keys in the collection should be ordered. Possible values\nare 'ascending' or 'descending'.",
+            "itemtype": "property",
+            "name": "orderBy",
+            "type": "{string}",
+            "default": "'descending'",
+            "readonly": "",
+            "class": "SparseDataCollection",
+            "module": "jQuery.autoChart"
+        },
+        {
+            "file": "js\\jquery.autochart.js",
+            "line": 1056,
+            "description": "Sorts the keys based on the value of the instances orderBy property.",
+            "itemtype": "method",
+            "name": "createSortedKeys",
+            "return": {
+                "description": "",
+                "type": "Void"
+            },
+            "class": "SparseDataCollection",
+            "module": "jQuery.autoChart"
+        },
+        {
+            "file": "js\\jquery.autochart.js",
+            "line": 1087,
+            "description": "Accessor method, returns the value stored at a specified index",
+            "itemtype": "method",
+            "name": "get",
+            "params": [
+                {
+                    "name": "index",
+                    "description": "The index of the item to be returned.",
+                    "type": "Integer"
+                }
+            ],
+            "return": {
+                "description": "The item stored at the specified index.",
+                "type": "Object"
+            },
+            "class": "SparseDataCollection",
+            "module": "jQuery.autoChart"
+        },
+        {
+            "file": "js\\jquery.autochart.js",
+            "line": 1097,
+            "description": "Iteration method. Similar to jQuery's $.each method.  Iterates\nover collection, calling the callback for each value.  The callback\nis executed in the context of the item, and is passed the sorted index\nin the collection, as well as the absolute index of the item (or the key).",
+            "itemtype": "method",
+            "name": "each",
+            "params": [
+                {
+                    "name": "callback",
+                    "description": "The callback to be executed for each element in the collection.",
+                    "type": "Function"
+                }
+            ],
+            "return": {
+                "description": "",
+                "type": "Void"
+            },
+            "class": "SparseDataCollection",
+            "module": "jQuery.autoChart"
+        },
+        {
+            "file": "js\\jquery.autochart.js",
+            "line": 1116,
+            "description": "Iteration method. Similar to jQuery's $.map method.  Iterates\nover collection, calling the callback for each value.  The callback\nis executed in the context of the item, and is passed the sorted index\nin the collection, as well as the absolute index of the item (or the key). The callback\ncan return a value, which is mapped into a new array returned by the map function.  If the\ncallback returns null, then no item is added to the array.",
+            "itemtype": "method",
+            "name": "map",
+            "params": [
+                {
+                    "name": "callback",
+                    "description": "The callback to be executed for each element in the collection.",
+                    "type": "Function"
+                }
+            ],
+            "return": {
+                "description": "",
+                "type": "Array"
+            },
+            "class": "SparseDataCollection",
+            "module": "jQuery.autoChart"
+        },
+        {
+            "file": "js\\jquery.autochart.js",
+            "line": 1140,
+            "description": "Returns the number of keys contained in the collection.",
+            "itemtype": "method",
+            "name": "getLength",
+            "return": {
+                "description": "",
+                "type": "Int"
+            },
+            "class": "SparseDataCollection",
+            "module": "jQuery.autoChart"
+        },
+        {
+            "file": "js\\jquery.autochart.js",
+            "line": 1159,
+            "description": "Parses the units or the title from a regex, record index, or string.",
+            "itemtype": "method",
+            "name": "parseUnitsOrTitle",
+            "params": [
+                {
+                    "name": "ops",
+                    "description": "The options for the units or the title",
+                    "type": "Object"
+                }
+            ],
+            "return": {
+                "description": "",
+                "type": "Void"
+            },
+            "access": "private",
+            "tagname": "",
+            "class": "DataTable",
+            "module": "jQuery.autoChart"
+        },
+        {
+            "file": "js\\jquery.autochart.js",
+            "line": 1192,
+            "description": "Parses the title, wraps parseUnitsOrTitle.  If a caption exists for\nthe table, this is used in lieu of the passed options.",
+            "itemtype": "method",
+            "name": "parseTitle",
+            "params": [
+                {
+                    "name": "options",
+                    "description": "The options for the title",
+                    "type": "Object"
+                }
+            ],
+            "return": {
+                "description": "",
+                "type": "Void"
+            },
+            "access": "private",
+            "tagname": "",
+            "class": "DataTable",
+            "module": "jQuery.autoChart"
+        },
+        {
+            "file": "js\\jquery.autochart.js",
+            "line": 1215,
+            "description": "Parses the units, wraps parseUnitsOrTitle.",
+            "itemtype": "method",
+            "name": "parseUnits",
+            "params": [
+                {
+                    "name": "options",
+                    "description": "The options for the units",
+                    "type": "Object"
+                }
+            ],
+            "return": {
+                "description": "",
+                "type": "Void"
+            },
+            "access": "private",
+            "tagname": "",
+            "class": "DataTable",
+            "module": "jQuery.autoChart"
+        },
+        {
+            "file": "js\\jquery.autochart.js",
+            "line": 1230,
+            "description": "Parses the fields in the table based on the passed options.  Fields are\ndivided into three SparseDataCollections, one for category fields, one\nfor value fields, and one for all fields.",
+            "itemtype": "method",
+            "name": "parseFields",
+            "params": [
+                {
+                    "name": "options",
+                    "description": "The options for the table.",
+                    "type": "Object"
+                }
+            ],
+            "return": {
+                "description": "",
+                "type": "Void"
+            },
+            "access": "private",
+            "tagname": "",
+            "class": "DataTable",
+            "module": "jQuery.autoChart"
+        },
+        {
+            "file": "js\\jquery.autochart.js",
+            "line": 1271,
+            "description": "A collection of all Fields parsed from the table.",
+            "itemtype": "property",
+            "name": "fields",
+            "type": "{SparseDataCollection}",
+            "readonly": "",
+            "class": "DataTable",
+            "module": "jQuery.autoChart"
+        },
+        {
+            "file": "js\\jquery.autochart.js",
+            "line": 1282,
+            "description": "A collection of all category Fields parsed from the table.",
+            "itemtype": "property",
+            "name": "categoryFields",
+            "type": "{SparseDataCollection}",
+            "readonly": "",
+            "class": "DataTable",
+            "module": "jQuery.autoChart"
+        },
+        {
+            "file": "js\\jquery.autochart.js",
+            "line": 1293,
+            "description": "A collection of all value parsed from the table.",
+            "itemtype": "property",
+            "name": "valueFields",
+            "type": "{SparseDataCollection}",
+            "readonly": "",
+            "class": "DataTable",
+            "module": "jQuery.autoChart"
+        },
+        {
+            "file": "js\\jquery.autochart.js",
+            "line": 1305,
+            "description": "Parses the records in the table based on the passed options.  Records are\ndivided into three SparseDataCollections, one for header records, one for \ndata records, and one for all records.",
+            "itemtype": "method",
+            "name": "parseRecords",
+            "params": [
+                {
+                    "name": "options",
+                    "description": "The options for the table.",
+                    "type": "Object"
+                }
+            ],
+            "return": {
+                "description": "",
+                "type": "Void"
+            },
+            "access": "private",
+            "tagname": "",
+            "class": "DataTable",
+            "module": "jQuery.autoChart"
+        },
+        {
+            "file": "js\\jquery.autochart.js",
+            "line": 1352,
+            "description": "A collection of all Records parsed from the table.",
+            "itemtype": "property",
+            "name": "records",
+            "type": "{SparseDataCollection}",
+            "readonly": "",
+            "class": "DataTable",
+            "module": "jQuery.autoChart"
+        },
+        {
+            "file": "js\\jquery.autochart.js",
+            "line": 1363,
+            "description": "A collection of all header Records parsed from the table.",
+            "itemtype": "property",
+            "name": "headerRecords",
+            "type": "{SparseDataCollection}",
+            "readonly": "",
+            "class": "DataTable",
+            "module": "jQuery.autoChart"
+        },
+        {
+            "file": "js\\jquery.autochart.js",
+            "line": 1374,
+            "description": "A collection of all data Records parsed from the table.",
+            "itemtype": "property",
+            "name": "dataRecords",
+            "type": "{SparseDataCollection}",
+            "readonly": "",
+            "class": "DataTable",
+            "module": "jQuery.autoChart"
+        },
+        {
+            "file": "js\\jquery.autochart.js",
+            "line": 1388,
+            "description": "LayoutTable Constructor Function",
+            "itemtype": "method",
+            "name": "init",
+            "params": [
+                {
+                    "name": "layoutTable",
+                    "description": "The LayoutTable instance that proxies\nthe physical table for this DataTable instance.",
+                    "type": "LayoutTable"
+                },
+                {
+                    "name": "options",
+                    "description": "The options object for parsing the data out of\nthe LayoutTable.  See the jQuery.autoChart module for a description of\nthe options and defaults.",
+                    "type": "Object"
+                }
+            ],
+            "class": "DataTable",
+            "module": "jQuery.autoChart"
+        },
+        {
+            "file": "js\\jquery.autochart.js",
+            "line": 1399,
+            "description": "The options object passed to the constructor function.",
+            "itemtype": "property",
+            "name": "options",
+            "type": "{object}",
+            "readonly": "",
+            "class": "DataTable",
+            "module": "jQuery.autoChart"
+        },
+        {
+            "file": "js\\jquery.autochart.js",
+            "line": 1408,
+            "description": "The layout type of this datatable as defined in the options\nobject.",
+            "itemtype": "property",
+            "name": "layout",
+            "type": "{string}",
+            "readonly": "",
+            "class": "DataTable",
+            "module": "jQuery.autoChart"
+        },
+        {
+            "file": "js\\jquery.autochart.js",
+            "line": 1417,
+            "description": "The LayoutTable that proxies the physical table for this data table.",
+            "itemtype": "property",
+            "name": "layoutTable",
+            "type": "{LayoutTable}",
+            "readonly": "",
+            "class": "DataTable",
+            "module": "jQuery.autoChart"
+        },
+        {
+            "file": "js\\jquery.autochart.js",
+            "line": 1425,
+            "description": "The CellCollection that contains the field information for this table.\nIf the layout is 'vertical', then the fieldCollection will be the\ncolumns from the layoutTable.  If the layout 'horizontal', then the\nfieldCollection will be the rows from the layoutTable.",
+            "itemtype": "property",
+            "name": "fieldCollection",
+            "type": "{CellCollection}",
+            "readonly": "",
+            "class": "DataTable",
+            "module": "jQuery.autoChart"
+        },
+        {
+            "file": "js\\jquery.autochart.js",
+            "line": 1437,
+            "description": "The CellCollection that contains the record information for this table.\nIf the layout is 'vertical', then the recordCollection will be the\nrows from the layoutTable.  If the layout 'horizontal', then the\nrecordCollection will be the columns from the layoutTable.",
+            "itemtype": "property",
+            "name": "recordCollection",
+            "type": "{CellCollection}",
+            "readonly": "",
+            "class": "DataTable",
+            "module": "jQuery.autoChart"
+        }
+    ]
+}

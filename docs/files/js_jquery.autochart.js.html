@@ -1,0 +1,2000 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>js\jquery.autochart.js - The jQuery.autoChart API</title>
+    <link rel="stylesheet" href="http:&#x2F;&#x2F;yui.yahooapis.com&#x2F;3.5.1&#x2F;build&#x2F;cssgrids&#x2F;cssgrids-min.css">
+    <link rel="stylesheet" href="..&#x2F;assets/vendor/prettify/prettify-min.css">
+    <link rel="stylesheet" href="..&#x2F;assets/css/main.css" id="site_styles">
+    <link rel="shortcut icon" type="image/png" href="..&#x2F;assets/favicon.png">
+    <script src="http:&#x2F;&#x2F;yui.yahooapis.com&#x2F;combo?3.5.1&#x2F;build&#x2F;yui&#x2F;yui-min.js"></script>
+</head>
+<body class="yui3-skin-sam">
+
+<div id="doc">
+    <div id="hd" class="yui3-g header">
+        <div class="yui3-u-3-4">
+            
+                <h1><img src="..&#x2F;assets/css/logo.png" title="The jQuery.autoChart API"></h1>
+            
+        </div>
+        <div class="yui3-u-1-4 version">
+            <em>API Docs for: </em>
+        </div>
+    </div>
+    <div id="bd" class="yui3-g">
+
+        <div class="yui3-u-1-4">
+            <div id="docs-sidebar" class="sidebar apidocs">
+                <div id="api-list">
+    <h2 class="off-left">APIs</h2>
+    <div id="api-tabview" class="tabview">
+        <ul class="tabs">
+            <li><a href="#api-classes">Classes</a></li>
+            <li><a href="#api-modules">Modules</a></li>
+        </ul>
+
+        <div id="api-tabview-filter">
+            <input type="search" id="api-filter" placeholder="Type to filter APIs">
+        </div>
+
+        <div id="api-tabview-panel">
+            <ul id="api-classes" class="apis classes">
+            
+                <li><a href="..&#x2F;classes/Cell.html">Cell</a></li>
+            
+                <li><a href="..&#x2F;classes/CellCollection.html">CellCollection</a></li>
+            
+                <li><a href="..&#x2F;classes/Column.html">Column</a></li>
+            
+                <li><a href="..&#x2F;classes/DataCollection.html">DataCollection</a></li>
+            
+                <li><a href="..&#x2F;classes/DataTable.html">DataTable</a></li>
+            
+                <li><a href="..&#x2F;classes/DynamicClass.html">DynamicClass</a></li>
+            
+                <li><a href="..&#x2F;classes/Field.html">Field</a></li>
+            
+                <li><a href="..&#x2F;classes/LayoutTable.html">LayoutTable</a></li>
+            
+                <li><a href="..&#x2F;classes/Record.html">Record</a></li>
+            
+                <li><a href="..&#x2F;classes/Row.html">Row</a></li>
+            
+                <li><a href="..&#x2F;classes/SparseDataCollection.html">SparseDataCollection</a></li>
+            
+                <li><a href="..&#x2F;classes/TableElement.html">TableElement</a></li>
+            
+            </ul>
+
+            <ul id="api-modules" class="apis modules">
+            
+                <li><a href="..&#x2F;modules/jQuery.autoChart.html">jQuery.autoChart</a></li>
+            
+            </ul>
+        </div>
+    </div>
+</div>
+
+            </div>
+        </div>
+        <div class="yui3-u-3-4">
+                <div id="api-options">
+        Show:
+        <label for="api-show-inherited">
+            <input type="checkbox" id="api-show-inherited" checked>
+            Inherited
+        </label>
+
+        <label for="api-show-protected">
+            <input type="checkbox" id="api-show-protected">
+            Protected
+        </label>
+
+        <label for="api-show-private">
+            <input type="checkbox" id="api-show-private">
+            Private
+        </label>
+        <label for="api-show-deprecated">
+            <input type="checkbox" id="api-show-deprecated">
+            Deprecated
+        </label>
+
+    </div>
+
+
+            <div class="apidocs">
+                <div id="docs-main">
+                    <div class="content">
+                        <h1 class="file-heading">File: js\jquery.autochart.js</h1>
+
+<div class="file">
+    <pre class="code prettyprint linenums">
+&#x2F;**
+ *	The jQuery.autoChart plugin scrapes html tables, and exposes the data
+ *	for charting.  The plugin can also add a set of controls to the table
+ *	to allow for series selection, and charting using Highcharts in a
+ *	fancybox modal window.
+ *
+ *		defaultOptions = {
+ *
+ *			&#x2F;&#x2F;	Specifies the layout of the table.  A horizontal table has its
+ *			&#x2F;&#x2F;	records as columns, and it&#x27;s fields as rows. A vertical table
+ *			&#x2F;&#x2F;	has its records as rows, and fields as columns.
+ *
+ *			layout : &#x27;horizontal&#x27;,
+ *
+ *			&#x2F;&#x2F;	Specify either a text value, or a column&#x2F;row address for the
+ *			&#x2F;&#x2F;	Title.  Optionally, a regular expression and a match index
+ *			&#x2F;&#x2F;	can be provided to extract a portion of the text in a cell.
+ *			&#x2F;&#x2F;	
+ *			&#x2F;&#x2F;	title : {
+ *			&#x2F;&#x2F;		text : (String or undefined)
+ *			&#x2F;&#x2F;		row : (Number or undefined)
+ *			&#x2F;&#x2F;		column : (Number or undefined)
+ *			&#x2F;&#x2F;		regex : {
+ *			&#x2F;&#x2F;			pattern : (String or RegEx)
+ *			&#x2F;&#x2F;			match : (Number)
+ *			&#x2F;&#x2F;		}
+ *			&#x2F;&#x2F;	}
+ *			
+ *			title : void 0,
+ *		
+ *			&#x2F;&#x2F;	Same as title but for the chart units.  Additionally for the
+ *			&#x2F;&#x2F;	units, if only a row or column is provided, it is assumed
+ *			&#x2F;&#x2F;	that the record contains multiple units that are associated
+ *			&#x2F;&#x2F;	with various fields.  This allows for multiple units to be
+ *			&#x2F;&#x2F;	contained in the same table.
+ *			&#x2F;&#x2F;	
+ *			&#x2F;&#x2F;	units : {
+ *			&#x2F;&#x2F;		text : (String or undefined)
+ *			&#x2F;&#x2F;		row : (Number or undefined)
+ *			&#x2F;&#x2F;		column (Number or undefined)
+ *			&#x2F;&#x2F;		regex : {
+ *			&#x2F;&#x2F;			pattern : (String or RegEx)
+ *			&#x2F;&#x2F;			match : (Number)
+ *			&#x2F;&#x2F;		}
+ *			&#x2F;&#x2F;	}
+ *	
+ *			units : void 0,
+ *		
+ *			&#x2F;&#x2F;	Format is {Number} for a specific record, {Number}-{Number}
+ *			&#x2F;&#x2F;	for a range, and {Number}+ for all records after and including a
+ *			&#x2F;&#x2F;	specific record.
+ *			
+ *			header : void 0,
+ *			
+ *			&#x2F;&#x2F;	Same as header but for the data (data) records.
+ *			
+ *			data : void 0,
+ *			
+ *			&#x2F;&#x2F;	Same as header but for the footer rows (footers are always rows).
+ *			
+ *			footer : void 0,
+ *			
+ *			&#x2F;&#x2F;	Same as header but for the category fields
+ *			
+ *			category : void 0,
+ *			
+ *			&#x2F;&#x2F;	Same as header but for the value fields
+ *			
+ *			value : void 0,
+ *			
+ *			&#x2F;&#x2F;	Specifies a record index to insert the charting controls,
+ *			&#x2F;&#x2F;	defaults to the last header record
+ *			
+ *			controlsIndex : void 0,
+ *			
+ *			&#x2F;&#x2F;	Specifies whether or not the table supports multi-charting,
+ *			&#x2F;&#x2F;	defaults to true for multi-field and false for single-field
+ *			&#x2F;&#x2F;	tables
+ *		
+ *			multiChart : void 0
+ *		};
+ *	
+ *	@module jQuery.autoChart
+ *	@requires jQuery, Highcharts, jQuery.fancybox
+ *&#x2F;
+(function($){
+	
+	&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;
+	&#x2F;&#x2F; Default Table Options &#x2F;&#x2F;
+	&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;
+	
+	var defaultOptions = {
+		layout : &#x27;horizontal&#x27;,
+		title : void 0,
+		units : void 0,
+		header : void 0,
+		data : void 0,
+		footer : void 0,
+		category : void 0,
+		value : void 0,
+		controlsIndex : void 0,
+		multiChart : void 0
+	};
+	
+	&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;
+	&#x2F;&#x2F; Utility Methods &#x2F;&#x2F;
+	&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;
+	
+	function parseIndices(indices, maxIndex){
+		var selectedIndices = [];
+		
+		if(indices instanceof Array){
+			for(i=0; i&lt;indices.length; i++){
+				if(indices[i] &lt; maxIndex) selectedIndices.push(indices[i]);
+			}
+		}
+		else if(!isNaN(indices)){
+			selectedIndices.push(indices);
+		}
+		else if(typeof indices == &#x27;string&#x27;){
+			var indexTokens = indices.split(&#x27;,&#x27;);
+			
+			$.each(indexTokens, function(i, token){
+				var index = Number(token),
+				indices, j;
+				
+				if(!isNaN(index))
+					selectedIndices.push(parseInt(index, 10));
+				else{
+					if(~token.indexOf(&#x27;-&#x27;)){
+						indices = token.split(&#x27;-&#x27;);
+						for(
+							j = parseInt(indices[0], 10);
+							j &lt;= parseInt(indices[1], 10) &amp;&amp; j &lt; maxIndex;
+							j++
+						)
+							selectedIndices.push(parseInt(j, 10));
+					}
+					else if(~token.indexOf(&#x27;+&#x27;)){
+						indices = token.match(&#x2F;(\d+)\+&#x2F;);
+						for(j = indices[1]; j &lt; maxIndex; j++)
+							selectedIndices.push(parseInt(j, 10));
+					}
+					else{
+						throw &#x27;Invalid index token&#x27;;
+					}
+				}
+			});
+		}
+		
+		selectedIndices.sort(function(a, b){
+			return a - b;
+		});
+		
+		return selectedIndices;
+	};
+	
+	function generateOptions(tableEle){
+		var ops = {};
+		&#x2F;&#x2F; Do Something
+		return ops;
+	};
+	
+	&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;
+	&#x2F;&#x2F; Class Methods &#x2F;&#x2F;
+	&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;
+
+	&#x2F;&#x2F; Class methods based heavily on or borrowed from
+	&#x2F;&#x2F; webreflection.blogspot.com&#x2F;2010&#x2F;02&#x2F;javascript-override-patterns.html
+	
+	&#x2F;&#x2F; Chain method by Andrea Giammarchi
+	var chain = (function () {
+		&#x2F;&#x2F; recycled empty callback
+		&#x2F;&#x2F; used to avoid constructors execution
+		&#x2F;&#x2F; while extending
+		function proto() {}
+
+		&#x2F;&#x2F; chain function
+		return function ($prototype) {
+			&#x2F;&#x2F; associate the object&#x2F;prototype
+			&#x2F;&#x2F; to the __proto__.prototype
+			proto.prototype = $prototype;
+			&#x2F;&#x2F; and create a chain
+			return new proto;
+		};
+	}());
+	
+	function createClass(
+		&#x2F;&#x2F; (properties, $uper)
+		&#x2F;&#x2F; or
+		&#x2F;&#x2F; (constructor, properties, $uper)
+		){
+		var klass, klassProperties, superPrototype;
+		if(arguments.length == 3){
+			klass = arguments[0];
+			klassProperties = arguments[1];
+			superPrototype = arguments[2];
+		}
+		else{
+			klass = function(){
+				if(typeof this.init == &#x27;function&#x27;)
+					this.init.apply(this, arguments);
+			};
+			klassProperties = arguments[0];
+			superPrototype = arguments[1];
+		}
+		if(typeof superPrototype == &#x27;object&#x27;){
+			klass.prototype = chain(superPrototype);
+			for(prop in klassProperties){
+				if(
+					klassProperties.hasOwnProperty(prop) &amp;&amp;
+					typeof klassProperties[prop] == &#x27;function&#x27;
+				){
+					klassProperties[prop] = function(originalMethod, propertyName){
+						return function(){
+							var ret;
+							this.$super = superPrototype[propertyName];
+							ret = originalMethod.apply(this, arguments);
+							this.$super = void 0;
+							return ret;
+						};
+					}(klassProperties[prop], prop)
+				}
+			}
+		}
+		
+		$.extend(klass.prototype, klassProperties);
+		
+		return klass;
+	};
+	
+	&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;
+	&#x2F;&#x2F; Base Class &#x2F;&#x2F;
+	&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;
+	
+	&#x2F;**
+	 *	Base class for most classes in the module.  It allows
+	 *	for classes that take an object as a constructor argument, and
+	 *	apply a set of the properties from the object to the class instance.
+	 *	If the properties are not found on the object, then the instance
+	 *	will pass hasOwnProperty for the missing properties, with undefined
+	 *	values.
+	 *	
+	 * 	@class DynamicClass
+	 *	@constructor 
+	 *&#x2F;
+	
+	var DynamicClass = createClass({
+		&#x2F;**
+		 *	Constructor Function DynamicClass
+		 *	@method init
+		 *	@param values {object} An object containing properties to be applied to the class.
+		 *&#x2F;
+		init : function(values){
+			this.applyProperties([&#x2F;*props go here*&#x2F;], values);
+		},
+		&#x2F;**
+		 *	Applies properties from a value object to the class instance.
+		 *	@method applyProperties
+		 *	@param props {array} An array of strings representing keys on the value object.
+		 *	@param values {object} An object containing values to be applied to the class instance.
+		 *	@return {void}
+		 *&#x2F;
+		applyProperties : function(props, values){
+			var i, prop;
+			if(values){
+				for(i in props){
+					prop = props[i];
+					if(values.hasOwnProperty(prop))
+						this[prop] = values[prop];
+					else
+						this[prop] = void 0;
+				}
+			}
+		}
+	});
+	
+	&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;
+	&#x2F;&#x2F; Layout Classes &#x2F;&#x2F;
+	&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;
+	
+	&#x2F;**
+	 *	Base class for most all table elements (cell, row, column).  This class
+	 *	is a wrapper for a jQuery element, and provides some utility methods to
+	 *	interact with the underlying element.
+	 *	
+	 * 	@class TableElement
+	 *	@extends DynamicClass
+	 *	@constructor 
+	 *&#x2F;
+	
+	var TableElement = createClass({
+		&#x2F;**
+		 *	Constructor Function TableElement
+		 *	
+		 *	@method init
+		 *	@param values {object} An object containing properties to be applied to the class
+		 *&#x2F;
+		init : function(values){
+			this.$super(values);
+			this.applyProperties([
+				&#x2F;**
+				 * The jQuery wrapper for a unique table dom element
+				 * 
+				 * @property element
+				 * @type {jQuery}
+				 * @readOnly
+				 **&#x2F;
+				&#x27;element&#x27;
+			], values);
+		},
+		&#x2F;**
+		 *	Checks to see if this TableElement instance wraps the same element as the
+		 *	passed TableElement.
+		 *	
+		 *	@method equals
+		 *	@param other {TableElement} A TableElement to check equivilency against.
+		 *	@return {boolean}
+		 *&#x2F;
+		equals : function(other){
+			if(this.element &amp;&amp; other.element)
+				return this.element.get(0) == other.element.get(0);
+			else
+				return false;
+		},
+		&#x2F;**
+		 *	Hides the wrapped element.
+		 *	
+		 *	@method hide
+		 *	@return {void}
+		 *&#x2F;
+		hide : function(){
+			if(this.element)
+				this.element.hide();
+		},
+		&#x2F;**
+		 *	Shows the wrapped element.
+		 *	
+		 *	@method show
+		 *	@return {void}
+		 *&#x2F;
+		show : function(){
+			if(this.element)
+				this.element.show();
+		},
+		&#x2F;**
+		 *	Checks to see if the wrapped element is visible.
+		 *	
+		 *	@method isVisible
+		 *	@return {boolean}
+		 *&#x2F;
+		isVisible : function(){
+			if(this.element)
+				return this.element.is(&#x27;:visible&#x27;);
+			else
+				return false;
+		},
+		&#x2F;**
+		 *	Checks to see if the wrapped element is attached to the dom.
+		 *	
+		 *	@method isAttached
+		 *	@return {boolean}
+		 *&#x2F;
+		isAttached : function(){
+			return this.element.parents().has(&#x27;body&#x27;).length &gt; 0;
+		}
+	}, DynamicClass.prototype);
+	
+	&#x2F;**
+	 *	Wrapper class for a table cell element.
+	 *	
+	 * 	@class Cell
+	 *	@extends TableElement
+	 *	@constructor 
+	 *&#x2F;
+	var Cell = createClass({
+		&#x2F;**
+		 *	Constructor Function Cell
+		 *	
+		 *	@method init
+		 *	@param values {object} An object containing properties to be applied to the class
+		 *&#x2F;
+		init : function(values){
+			this.$super(values);
+			if(!this[&#x27;element&#x27;]) this[&#x27;element&#x27;] = $(&#x27;&lt;td&gt;&lt;&#x2F;td&gt;&#x27;);
+			&#x2F;**
+			 * 	The wrapped cell&#x27;s original colspan.
+			 *
+			 *	@property originalColspan
+			 *	@type {integer}
+			 *	@readOnly
+			 **&#x2F;
+			this[&#x27;originalColspan&#x27;] = this.getColspan();
+			&#x2F;**
+			 * 	The wrapped cell&#x27;s original rowspan.
+			 *
+			 *	@property originalRowspan
+			 *	@type {integer}
+			 *	@readOnly
+			 **&#x2F;
+			this[&#x27;originalRowspan&#x27;] = this.getRowspan();
+		},
+		&#x2F;**
+		 *	Returns the value of the cell.  This value is derived from the
+		 *	html value, with trailing and leading whitspace, as well as
+		 *	tags and html entities removed.
+		 *
+		 *	@method getValue
+		 *	@return {string}
+		 **&#x2F;
+		getValue : function(){
+			return $.trim(this.element.html()
+				&#x2F;&#x2F; Strip Sub and Sup tags
+				.replace(&#x2F;&lt;sup&gt;.*?&lt;\&#x2F;sup&gt;&#x2F;g, &#x27;&#x27;)
+				.replace(&#x2F;&lt;sub&gt;.*?&lt;\&#x2F;sub&gt;&#x2F;g, &#x27;&#x27;)
+				&#x2F;&#x2F; Replace spaces with spaces
+				.replace(&#x2F;&amp;nbsp;&#x2F;g, &#x27; &#x27;)
+				&#x2F;&#x2F; Replace line breaks with spaces
+				.replace(&#x2F;&lt;\s*br\s*\&#x2F;?&gt;&#x2F;g, &#x27; &#x27;)
+				&#x2F;&#x2F; Strip all other tags
+				.replace(&#x2F;&lt;.*?&gt;&#x2F;g, &#x27;&#x27;));
+		},
+		&#x2F;**
+		 *	Sets the HTML Value of the table cell.
+		 *
+		 *	@method setValue
+		 *	@return {void}
+		 **&#x2F;
+		setValue : function(value){
+			this.element.html(value)
+		},
+		&#x2F;**
+		 *	Returns the current colspan of the table cell element
+		 *
+		 *	@method getColspan
+		 *	@return {ingeger}
+		 **&#x2F;
+		getColspan : function(){
+			return parseInt(this.element.attr(&#x27;colspan&#x27;)) || 1;
+		},
+		&#x2F;**
+		 *	Returns the current rowspan of the table cell element
+		 *
+		 *	@method getRowspan
+		 *	@return {integer}
+		 **&#x2F;
+		getRowspan : function(){
+			return parseInt(this.element.attr(&#x27;rowspan&#x27;)) || 1;
+		},
+		&#x2F;**
+		 *	Sets the colspan of the table cell element
+		 *
+		 *	@method setColspan
+		 *	@return {void}
+		 **&#x2F;
+		setColspan : function(val, updateOriginal){
+			this.element.attr(&#x27;colspan&#x27;, val);
+			if(updateOriginal) this[&#x27;originalColspan&#x27;] = val;
+		},
+		&#x2F;**
+		 *	Sets the rowspan of the table cell element
+		 *
+		 *	@method setRowspan
+		 *	@return {void}
+		 **&#x2F;
+		setRowspan : function(val, updateOriginal){
+			this.element.attr(&#x27;rowspan&#x27;, val);
+			if(updateOriginal) this[&#x27;originalRowspan&#x27;] = val;
+		},
+		&#x2F;**
+		 *	Deincrements the colspan of the element.  If the
+		 *	deincremented colspan is zero, then the element is
+		 *	hidden.
+		 *
+		 *	@method deincrementColspan
+		 *	@return {void}
+		 **&#x2F;
+		deincrementColspan : function(updateOriginal){
+			var colspan = this.getColspan();
+			if(colspan &gt; 1)
+				this.setColspan(colspan - 1, updateOriginal);
+			else
+				this.hide();
+		},
+		&#x2F;**
+		 *	Deincrements the rowspan of the element.  If the
+		 *	deincremented rowspan is zero, then the element is
+		 *	hidden.
+		 *
+		 *	@method deincrementRowspan
+		 *	@return {void}
+		 **&#x2F;
+		deincrementRowspan : function(updateOriginal){
+			var rowspan = this.getRowspan();
+			if(rowspan &gt; 1)
+				this.setRowspan(rowspan - 1, updateOriginal);
+			else
+				this.hide();
+		},
+		&#x2F;**
+		 *	Increments the colspan of the element.  If the
+		 *	current colspan is zero, then the element is
+		 *	shown.
+		 *
+		 *	@method incrementColspan
+		 *	@return {void}
+		 **&#x2F;
+		incrementColspan : function(){
+			var colspan = this.getColspan();
+			if(!this.isAttached() || this.isVisible())
+				this.setColspan(colspan + 1);
+			else
+				this.show();
+		},
+		&#x2F;**
+		 *	Increments the rowspan of the element.  If the
+		 *	current rowspan is zero, then the element is
+		 *	shown.
+		 *
+		 *	@method incrementRowspan
+		 *	@return {void}
+		 **&#x2F;
+		incrementRowspan : function(){
+			var rowspan = this.getRowspan();
+			if(!this.isAttached() || this.isVisible())
+				this.setRowspan(rowspan + 1);
+			else
+				this.show();
+		}
+	}, TableElement.prototype);
+	
+	
+	&#x2F;**
+	 *	Base class for cell collections (Row, Column).
+	 *	
+	 * 	@class CellCollection
+	 *	@extends TableElement
+	 *	@constructor 
+	 *&#x2F;
+	var CellCollection = createClass({
+		&#x2F;**
+		 *	Constructor Function CellCollection
+		 *	
+		 *	@method init
+		 *	@param values {object} An object containing properties to be applied to the class.
+		 *&#x2F;
+		init : function(values){
+			var i, cell;
+			this.$super(values)
+			this.applyProperties([
+				&#x2F;**
+				 * 	An array of Cell objects proxied by this collection.
+				 *
+				 *	@property cells
+				 *	@type {array}
+				 *	@readOnly
+				 **&#x2F;
+				&#x27;cells&#x27;
+			], properties);
+			for(cell = this.cells[i=0]; i&lt;this.cells.length; cell = this.cells[++i])
+				if(this.element)
+					if(cell.element.parents().find(this.element).length == 0)
+						cell.element.appendTo(this.element);
+		},
+		&#x2F;**
+		 * Adds a Cell element to the cell collection.
+		 *
+		 * @method addCell
+		 * @param index {integer} the index in the collection where the element will be added.
+		 * @param cell {Cell} the Cell element to add to the collection.
+		 * @return {void}
+		 **&#x2F;
+		addCell : function(index, cell){
+			if(this.element)
+				if(cell.element.parents().find(this.element).length == 0)
+					cell.element.insertAfter(this.cells[index].element);
+			this.cells.splice(index, 0, cell);
+		},
+		&#x2F;**
+		 * Returns an array of unique cells from a given set of indices.
+		 *
+		 * @method getUniqueCells
+		 * @param indices {array} An array of integers representing indices in the collection.
+		 * @return {array}
+		 **&#x2F;
+		getUniqueCells : function(indices){
+			var self = this, lastElement;
+			return $.map(indices, function(i, j){
+					if(!lastElement || self.cells[i].element != lastElement){
+						lastElement = self.cells[i].element
+						return self.cells[i];
+					}
+					else
+						return null;
+					
+				}
+			);
+		},
+		&#x2F;**
+		 * Returns an array of values from a given set of indices.
+		 *
+		 * @method getCellValues
+		 * @param indices {array} An array of integers representing indices in the collection.
+		 * @return {array}
+		 **&#x2F;
+		getCellValues : function(indices){
+			var self = this;
+			return $.map(indices, function(i, j){
+					return self.cells[i].getValue();
+				}
+			);
+		},
+		&#x2F;**
+		 *	Overridden method
+		 *
+		 * 	@method isVisible
+		 *	@return {boolean}
+		 **&#x2F;
+		isVisible : function(){
+			var visible = false;
+			$.each(this.cells, function(i, c){
+				visible |= c.isVisible();
+			});
+			return visible;
+		}
+	}, TableElement.prototype);
+	
+	&#x2F;**
+	 *	Wraps a row element and proxies it&#x27;s collection of cells.
+	 *	
+	 * 	@class Row
+	 *	@extends CellCollection
+	 *	@constructor 
+	 *&#x2F;
+	var Row = createClass({
+		&#x2F;**
+		 * 	Overridden method.
+		 *
+		 *	@method hide
+		 * 	@return {void}
+		 **&#x2F;
+		hide : function(){
+			var showElement = false;
+			$.each(this.cells, function(i, c){
+				c.deincrementRowspan();
+				showElement |= !c.isVisible();
+			});
+			if(!showElement) this.$super();
+		},
+		&#x2F;**
+		 * 	Overridden method.
+		 *
+		 *	@method show
+		 * 	@return {void}
+		 **&#x2F;
+		show : function(){
+			$.each(this.cells, function(i, c){
+				c.incrementRowspan();
+			});
+			this.$super();
+		}
+	}, CellCollection.prototype);
+	
+	&#x2F;**
+	 *	Wraps a colulmn element and proxies it&#x27;s collection of cells.
+	 *	
+	 * 	@class Column
+	 *	@extends CellCollection
+	 *	@constructor 
+	 *&#x2F;
+	var Column = createClass({
+		&#x2F;**
+		 * 	Overridden method.
+		 *
+		 *	@method hide
+		 * 	@return {void}
+		 **&#x2F;
+		hide : function(){
+			$.each(this.cells, function(i, c){
+				c.deincrementColspan();
+			});
+		},
+		&#x2F;**
+		 * 	Overridden method.
+		 *
+		 *	@method show
+		 * 	@return {void}
+		 **&#x2F;
+		show : function(){
+			$.each(this.cells, function(i, c){
+				c.incrementColspan();
+			});
+		}
+	}, CellCollection.prototype);
+	
+	&#x2F;**
+	 *	Parses and proxies an HTML table as a set of Row and Column collections.
+	 *	
+	 * 	@class LayoutTable
+	 *	@extends TableElement
+	 *	@constructor 
+	 *&#x2F;
+	var LayoutTable = function(){
+		
+		&#x2F;**
+		 *	Parses and HTML table into columns and rows.
+		 *
+		 *	@private
+		 *	@method slurpCellCollections
+		 *	@param tableEle {jQuery} The table element to be slurped
+		 **&#x2F;
+		function slurpCellCollections(tableEle){
+			var rows = [],
+			columns = [],
+			rowEles = tableEle.find(&#x27;tr&#x27;),
+			columnEles = tableEle.find(&#x27;col&#x27;),
+			rowCells = [],
+			columnCells = [],
+			row, column, i, j;
+			
+			&#x2F;&#x2F; Loop through the rows in the table
+			rowEles.each(function(i){
+				var rowEle = $(this);
+				&#x2F;&#x2F; Loop through the table cells in the row
+				rowEle.children(&#x27;th, td&#x27;).each(function(j){
+					var cellEle = $(this),
+					&#x2F;&#x2F; Get the colspan and rowspan for the cell
+					colspan = parseInt(cellEle.attr(&#x27;colspan&#x27;)) || 1,
+					rowspan = parseInt(cellEle.attr(&#x27;rowspan&#x27;)) || 1,
+					m = j,
+					cell, k, l;
+					&#x2F;&#x2F; Loop from the start index through the colspan
+					for(k = j; k &lt; j + colspan; k++){
+						&#x2F;&#x2F; If we haven&#x27;t already created an array to
+						&#x2F;&#x2F; store the cells for this row, create one now.
+						if(!rowCells[i]) rowCells[i] = [];
+						&#x2F;&#x2F; Find the first empty spot in the row
+						while(rowCells[i][m]) m++;
+						&#x2F;&#x2F; If we haven&#x27;t already created an array to
+						&#x2F;&#x2F; store the cells for this column, create one now.
+						if(!columnCells[m]) columnCells[m] = [];
+						&#x2F;&#x2F; Loop from the current row index through the rowspan
+						for(l = i; l &lt; i + rowspan; l++){
+							&#x2F;&#x2F; If we haven&#x27;t already created an array to
+							&#x2F;&#x2F; store the cells for this row, create one now.
+							if(!rowCells[l]) rowCells[l] = [];
+							&#x2F;&#x2F; Now that we have a column and row index for this
+							&#x2F;&#x2F; cell, create a new element and store it in the
+							&#x2F;&#x2F; proper position in the row and column arrays
+							cell = rowCells[l][m] =
+								columnCells[m][l] = new Cell({
+								&#x27;element&#x27; : cellEle
+							});
+						}
+					}
+				});
+			});
+			&#x2F;&#x2F; Loop through the row arrays and create row elements
+			for(i=0; i&lt;rowCells.length; i++){
+				row = rows[i] = new Row({
+					&#x27;element&#x27; : rowEles.eq(i),
+					&#x27;cells&#x27; : rowCells[i]
+				});
+			}
+			&#x2F;&#x2F; Loop through the column arrays and create column elements
+			for(i=0; i&lt;columnCells.length; i++){
+				column = columns[i] = new Column({
+					&#x27;element&#x27; : columnEles.eq(i),
+					&#x27;cells&#x27; : columnCells[i]
+				});
+			}
+			&#x2F;&#x2F; Return the rows and column collections
+			return {
+				&#x27;rows&#x27; : rows,
+				&#x27;columns&#x27; : columns
+			}
+		}
+		
+		return createClass({
+			&#x2F;**
+			 * LayoutTable Constructor Function
+			 *
+			 * @method init
+			 * @param tableEle {jQuery} The table element to be proxied.
+			 **&#x2F;
+			init : function(tableEle){
+				var properties = {
+					&#x27;element&#x27; : tableEle
+				};
+				
+				$.extend(properties, slurpCellCollections(tableEle));
+				
+				this.$super(properties);
+				
+				this.applyProperties([
+					&#x2F;**
+					 *	An array of Row collections
+					 *
+					 *	@property rows
+					 *	@type {array}
+					 **&#x2F;
+					&#x27;rows&#x27;,
+					&#x2F;**
+					 *	An array of Column collections
+					 *
+					 *	@property columns
+					 *	@type {array}
+					 **&#x2F;
+					&#x27;columns&#x27;
+				], properties);
+			},
+			&#x2F;**
+			 *	Adds a set of cells at the specified index as a column in the table
+			 *
+			 *	@method addColumn
+			 *	@param index {integer} The index for the newly created column.
+			 *	@param cells {array} An array of cells to populate the new column.
+			 *	@return {void}
+			 **&#x2F;
+			addColumn : function(index, cells){
+				var column = new Column({
+					&#x27;cells&#x27; : cells
+				});
+				for(var i=0; i&lt; Math.min(this.rows.length, cells.length); i++)
+					this.rows[i].addCell(index, cells[i]);
+				this.columns = this.columns.splice(index, 0, column);
+			},
+			&#x2F;**
+			 *	Adds a set of cells at the specified index as a row in the table
+			 *
+			 *	@method addRow
+			 *	@param index {integer} The index for the newly created row.
+			 *	@param cells {array} An array of cells to populate the new row.
+			 *	@return {void}
+			 **&#x2F;
+			addRow : function(index, cells){
+				var ele = $(&#x27;&lt;tr&gt;&lt;&#x2F;tr&gt;&#x27;);
+				ele.insertAfter($(&#x27;tr:eq(&#x27; + index + &#x27;)&#x27;, this.element));
+				this.rows = this.rows.splice(index, 0, new Row({
+					&#x27;element&#x27; : ele,
+					&#x27;cells&#x27;: cells
+				}));
+			}
+		}, TableElement.prototype);
+	}();
+	
+	&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;
+	&#x2F;&#x2F; Data Classes &#x2F;&#x2F;
+	&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;
+	
+	&#x2F;**
+	 *	Base class for all data collections (Record and Field)
+	 *
+	 *	@class DataCollection
+	 *	@extends DynamicClass
+	 *	@constructor
+	 **&#x2F;
+	var DataCollection = createClass({
+		&#x2F;**
+		 *	DataCollection Constructor Function
+		 *
+		 *	@method init
+		 *	@param values {object} An object containing properties to be applied to the class
+		 **&#x2F;
+		init : function(values){
+			this.$super(values);
+			this.applyProperties([
+				&#x2F;**
+				 *	The cell collection (Row, Column) that this data collection proxies
+				 *
+				 *	@property cellCollection
+				 *	@type {CellCollection}
+				 *	@readOnly
+				 **&#x2F;
+				&#x27;cellCollection&#x27;
+			], values)
+		}
+	}, DynamicClass.prototype);
+	
+	&#x2F;**
+	 *	A collection of cells that represent a field. Fields can be one of two types:
+	 *
+	 *	1. Value Fields: Represent data series in a table.
+	 *	1. Category Fields: Contain category values that correlate to the data contained in value fields.
+	 *
+	 *	Fields contain two sub collections (arrays):
+	 *
+	 *	1. Header Cells: These cells describe the data cells.
+	 *	1. Data Cells: These cells contain values and categories for value and category fields respectively.
+	 *
+	 *	@class Field
+	 *	@extends DataCollection
+	 *	@constructor
+	 **&#x2F;
+	var Field = createClass({
+		&#x2F;**
+		 *	Field Class Constructor
+		 *
+		 *	@method init
+		 *	@param values {object} An object containing properties to be applied to the class.
+		 *&#x2F; 
+		init : function(values){
+			this.$super(values);
+			this.applyProperties([
+				&#x2F;**
+				 *	Specifies whether or not this is a value field.
+				 *
+				 *	@property isValue
+				 *	@type {boolean}
+				 *	@readOnly
+				 **&#x2F;
+				&#x27;isValue&#x27;,
+				&#x2F;**
+				 *	Specifies whether or not this is a category field.
+				 *
+				 *	@property isCategory
+				 *	@type {boolean}
+				 *	@readOnly
+				 **&#x2F;
+				&#x27;isCategory&#x27;, &#x2F;&#x2F; Whether or not this is a category field
+				&#x2F;**
+				 *	If this isValue then the units for the field
+				 *
+				 *	@property units
+				 *	@type {string}
+				 *	@readOnly
+				 **&#x2F;
+				&#x27;units&#x27;,
+				&#x2F;**
+				 *	An array of cells that are the header cells for this
+				 *	field.
+				 *
+				 *	@property headerCells
+				 *	@type {array}
+				 *	@readOnly
+				 **&#x2F;
+				&#x27;headerCells&#x27;, &#x2F;&#x2F; The header cells for the field
+				&#x2F;**
+				 *	An array of cells that are the data cells for this
+				 *	field.
+				 *
+				 *	@property dataCells
+				 *	@type {array}
+				 *	@readOnly
+				 **&#x2F;
+				&#x27;dataCells&#x27;, &#x2F;&#x2F; The data cells for the field
+			], values);
+		}
+	}, DataCollection.prototype);
+	
+	&#x2F;**
+	 *	A collection of cells that represent a record. Records can be one of two types:
+	 *
+	 *	1. Header Records: Describe the data contained in the record.  These headers can contain
+	 *	categories, series descriptions, unit descriptions, and table descriptions.
+	 *	1. Data Records: Contain category values that correlate to the data contained in value fields.
+	 *
+	 *	Records contain two sub collections (arrays):
+	 *
+	 *	1. Category Cells: These cells contain the category for the record (year, region, ect.).
+	 *	1. Value Cells: These cells contain values for the record.
+	 *
+	 *	@class Record
+	 *	@extends DataCollection
+	 *	@constructor
+	 **&#x2F;
+	var Record = createClass({
+		init : function(values){
+			this.$super(values);
+			this.applyProperties([
+				&#x2F;**
+				 *	Specifies whether or not this is a header record
+				 *
+				 *	@property isHeader
+				 *	@type {boolean}
+				 *	@readOnly
+				 **&#x2F;
+				&#x27;isHeader&#x27;,
+				&#x2F;**
+				 *	Specifies whether or not this is a data record
+				 *
+				 *	@property isData
+				 *	@type {boolean}
+				 *	@readOnly
+				 **&#x2F;
+				&#x27;isData&#x27;,
+				&#x2F;**
+				 *	An array of cells that are the category cells for the record
+				 *
+				 *	@property categoryCells
+				 *	@type {array}
+				 *	@readOnly
+				 **&#x2F;
+				&#x27;categoryCells&#x27;,
+				&#x2F;**
+				 *	An array of cells that are the value cells for the record.
+				 *
+				 *	@property valueCells
+				 *	@type {array}
+				 *	@readOnly
+				 **&#x2F;
+				&#x27;valueCells&#x27;,
+				&#x2F;**
+				 *	A hash (object) of &lt;field index, value&gt; for the value cells
+				 *
+				 *	@property values
+				 *	@type {object}
+				 *	@readOnly
+				 **&#x2F;
+				&#x27;values&#x27;,
+			], values);
+		}
+	}, DataCollection.prototype);
+	
+	&#x2F;**
+	 *	A collection that proxies a sparse array or array like object. This allows for a table
+	 *	to skip physical rows and columns when creating fields and records, maintaning both a
+	 *	relative index for the record among the records&#x2F;fields in the table, as well as an
+	 *	absolute index that represents the physical index of the Row or Column in the table.
+	 *
+	 *	@class SparseDataCollection
+	 *	@extends DynamicClass
+	 *	@constructor
+	 **&#x2F;
+	var SparseDataCollection = createClass({
+		&#x2F;**
+		 *	SparseDataCollection Constructor Function
+		 *
+		 *	@method init
+		 *	@param values {object} An object containing properties to be applied to the class.
+		 **&#x2F;
+		init : function(properties){
+			this.$super(properties);
+			this.applyProperties([
+				&#x2F;**
+				 *	The array or array like object proxied by the collection.
+				 *
+				 *	@property values
+				 *	@type {object}
+				 *	@readOnly
+				 **&#x2F;
+				&#x27;values&#x27;,
+				&#x2F;**
+				 *	Specifies how the keys in the collection should be ordered. Possible values
+				 *	are &#x27;ascending&#x27; or &#x27;descending&#x27;.
+				 *
+				 *	@property orderBy
+				 *	@type {string}
+				 *	@default &#x27;descending&#x27;
+				 *	@readOnly
+				 **&#x2F;
+				&#x27;orderBy&#x27;
+			], properties);
+			this.createSortedKeys();
+		},
+		&#x2F;**
+		 *	Sorts the keys based on the value of the instances orderBy property.
+		 *
+		 *	@method createSortedKeys
+		 *	@return {void}
+		 **&#x2F;
+		createSortedKeys : function(){
+			this.keys = [];
+			
+			for(i in this.values){
+				if(this.values.hasOwnProperty(i)){
+					this.keys.push(i);
+				}
+			}
+			
+			this.keys.sort(function(a, b){
+				var ret;
+				
+				if(!isNaN(a) &amp;&amp; !isNaN(b))
+					ret = a - b;
+				else if(a &lt; b)
+					ret = -1;
+				else if(a==b)
+					ret = 0;
+				else
+					ret = 1;
+				if(this.orderBy == &#x27;ascending&#x27;)
+					ret = ret * -1;
+				return ret;
+			})
+		},
+		&#x2F;**
+		 *	Accessor method, returns the value stored at a specified index
+		 *
+		 *	@method get
+		 *	@param index {integer} The index of the item to be returned.
+		 *	@return {object} The item stored at the specified index.
+		 **&#x2F;
+		get : function(index){
+			return this.values[index];
+		},
+		&#x2F;**
+		 *	Iteration method. Similar to jQuery&#x27;s $.each method.  Iterates
+		 *	over collection, calling the callback for each value.  The callback
+		 *	is executed in the context of the item, and is passed the sorted index
+		 *	in the collection, as well as the absolute index of the item (or the key).
+		 *
+		 *	@method each
+		 *	@param callback {function} The callback to be executed for each element in the collection.
+		 *	@return {void}
+		 **&#x2F;
+		each : function(callback){
+			var cIndex, aIndex;
+			for(i = 0; i &lt; this.keys.length; i++){
+				j = this.keys[i];
+				if(this.values.hasOwnProperty(j)){
+					callback.call(this.values[j], i, j);
+				}
+			}
+		},
+		&#x2F;**
+		 *	Iteration method. Similar to jQuery&#x27;s $.map method.  Iterates
+		 *	over collection, calling the callback for each value.  The callback
+		 *	is executed in the context of the item, and is passed the sorted index
+		 *	in the collection, as well as the absolute index of the item (or the key). The callback
+		 *	can return a value, which is mapped into a new array returned by the map function.  If the
+		 *	callback returns null, then no item is added to the array.
+		 *
+		 *	@method map
+		 *	@param callback {function} The callback to be executed for each element in the collection.
+		 *	@return {array}
+		 **&#x2F;
+		map : function(callback){
+			var ret = [],
+			val, i, j;
+			for(i = 0; i &lt; this.keys.length; i++){
+				j = this.keys[i];
+				if(this.values.hasOwnProperty(j)){
+					val = callback.call(this.values[j], i, j);
+					if(val !== null) ret.push(val);
+				}
+			}
+			return ret;
+		},
+		&#x2F;**
+		 *	Returns the number of keys contained in the collection.
+		 *
+		 *	@method getLength
+		 *	@return {int}
+		 **&#x2F;
+		getLength : function(){
+			return this.keys.length;
+		}
+	}, DynamicClass.prototype);
+	
+	&#x2F;**
+	 *	The data counterpart to LayoutTable.  While the former is a collection of Rows and Columns, this is
+	 *	a collection of Fields and Records.
+	 *
+	 *	@class DataTable
+	 **&#x2F;
+	var DataTable = function(){
+		
+		&#x2F;**
+		 *	Parses the units or the title from a regex, record index, or string.
+		 *
+		 *	@method parseUnitsOrTitle
+		 *	@param ops {object} The options for the units or the title
+		 *	@return {void}
+		 *	@private
+		 **&#x2F;
+		function parseUnitsOrTitle(ops){
+			var ret = void 0;
+			if(typeof ops.text == &#x27;string&#x27;){
+				ret = ops.text;
+			}
+			else if(
+				!isNaN(ops.row) &amp;&amp;
+				!isNaN(ops.column)
+			)
+				ret = this.layoutTable.rows[ops.row]
+					.cells[ops.column].getValue();
+			else if(!isNaN(ops.row))
+				ret = this.layoutTable.rows[ops.row];
+			else if(!isNaN(ops.column))
+				ret = this.layoutTable.columns[ops.column];
+			if(
+				ops.regex &amp;&amp;
+				typeof ops.regex.pattern != &#x27;undefined&#x27; &amp;&amp;
+				!isNaN(ops.regex.match)
+			)
+				ret = ret.match(
+					new RegExp(ops.regex.pattern)
+				)[ops.regex.match];
+			return typeof ret == &#x27;string&#x27; ? $.trim(ret) : ret;
+		};
+		&#x2F;**
+		 *	Parses the title, wraps parseUnitsOrTitle.  If a caption exists for
+		 *	the table, this is used in lieu of the passed options.
+		 *
+		 *	@method parseTitle
+		 *	@param options {object} The options for the title
+		 *	@return {void}
+		 *	@private
+		 **&#x2F;
+		function parseTitle(options){
+			var caption;
+			
+			if(!options.title){
+				if((caption = this.element.find(&#x27;caption&#x27;)).length &gt; 0)
+					this.title = caption.text();
+				else
+					this.title = void 0
+			}
+			else{
+				this.title = parseUnitsOrTitle.call(this, options.title);
+			}
+			
+		};
+		&#x2F;**
+		 *	Parses the units, wraps parseUnitsOrTitle.
+		 *
+		 *	@method parseUnits
+		 *	@param options {object} The options for the units
+		 *	@return {void}
+		 *	@private
+		 **&#x2F;
+		function parseUnits(options){
+			if(options.units === void 0){
+				this.units = void 0;
+			}else{
+				this.units = parseUnitsOrTitle.call(this, options.units);
+			}
+		};
+		&#x2F;**
+		 *	Parses the fields in the table based on the passed options.  Fields are
+		 *	divided into three SparseDataCollections, one for category fields, one
+		 *	for value fields, and one for all fields.
+		 *
+		 *	@method parseFields
+		 *	@param options {object} The options for the table.
+		 *	@return {void}
+		 *	@private
+		 **&#x2F;
+		function parseFields(options){
+			var categoryFields = {},
+			valueFields = {},
+			i, index, field, cellCollection;
+			
+			for(var i=0; i&lt; this.categoryIndices.length; i++){
+				index = this.categoryIndices[i];
+				cellCollection = this.fieldCollection[index];
+				categoryFields[index] = field = new Field({
+					&#x27;cellCollection&#x27; : cellCollection,
+					&#x27;dataCells&#x27; : cellCollection.getUniqueCells(this.dataIndices),
+					&#x27;headerCells&#x27; : cellCollection.getUniqueCells(this.headerIndices),
+					&#x27;isCategory&#x27; : true,
+					&#x27;isValue&#x27; : false
+				});
+			}
+			for(var i=0; i&lt; this.valueIndices.length; i++){
+				index = this.valueIndices[i];
+				cellCollection = this.fieldCollection[index];
+				valueFields[index] = field = new Field({
+					&#x27;cellCollection&#x27; : cellCollection,
+					&#x27;dataCells&#x27; : cellCollection.getUniqueCells(this.dataIndices),
+					&#x27;headerCells&#x27; : cellCollection.getUniqueCells(this.headerIndices),
+					&#x27;isCategory&#x27; : false,
+					&#x27;isValue&#x27; : true,
+					&#x27;units&#x27; : typeof this.units == &#x27;string&#x27; ?
+						this.units : typeof this.units != &#x27;undefined&#x27; ?
+						this.units.cells[index].getValue() : &#x27;&#x27;
+				});
+			}
+			
+			&#x2F;**
+			 *	A collection of all Fields parsed from the table.
+			 *
+			 *	@property fields
+			 *	@type {SparseDataCollection}
+			 *	@readOnly
+			 **&#x2F;
+			this.fields = new SparseDataCollection({
+				&#x27;values&#x27; : $.extend({}, categoryFields, valueFields),
+				&#x27;orderBy&#x27; : &#x27;ascending&#x27;
+			});
+			&#x2F;**
+			 *	A collection of all category Fields parsed from the table.
+			 *
+			 *	@property categoryFields
+			 *	@type {SparseDataCollection}
+			 *	@readOnly
+			 **&#x2F;
+			this.categoryFields = new SparseDataCollection({
+				&#x27;values&#x27; : categoryFields,
+				&#x27;orderBy&#x27; : &#x27;ascending&#x27;
+			});
+			&#x2F;**
+			 *	A collection of all value parsed from the table.
+			 *
+			 *	@property valueFields
+			 *	@type {SparseDataCollection}
+			 *	@readOnly
+			 **&#x2F;
+			this.valueFields = new SparseDataCollection({
+				&#x27;values&#x27; : valueFields,
+				&#x27;orderBy&#x27; : &#x27;ascending&#x27;
+			});
+		};
+		&#x2F;**
+		 *	Parses the records in the table based on the passed options.  Records are
+		 *	divided into three SparseDataCollections, one for header records, one for 
+		 *	data records, and one for all records.
+		 *
+		 *	@method parseRecords
+		 *	@param options {object} The options for the table.
+		 *	@return {void}
+		 *	@private
+		 **&#x2F;
+		function parseRecords(options){
+			var headerRecords = {},
+			dataRecords = {},
+			properties, i, index, record, cellCollection, values, field;
+			
+			for(var i=0; i&lt;this.headerIndices.length; i++){
+				index = this.headerIndices[i];
+				cellCollection = this.recordCollection[index];
+				values = {};
+				this.fields.each(function(i, j){
+					values[j] = cellCollection.cells[j].getValue();
+				});
+				headerRecords[index] = record = new Record({
+					&#x27;cellCollection&#x27; : cellCollection,
+					&#x27;isHeader&#x27; : true,
+					&#x27;isData&#x27; : false,
+					&#x27;categoryCells&#x27; : cellCollection.getUniqueCells(this.categoryIndices),
+					&#x27;valueCells&#x27; : cellCollection.getUniqueCells(this.valueIndices),
+					&#x27;values&#x27; : values
+				});
+			}
+			for(var i=0; i&lt;this.dataIndices.length; i++){
+				index = this.dataIndices[i];
+				cellCollection = this.recordCollection[index];
+				values = {};
+				this.fields.each(function(i, j){
+					values[j] = cellCollection.cells[j].getValue();
+				});
+				dataRecords[index] = record = new Record({
+					&#x27;cellCollection&#x27; : cellCollection,
+					&#x27;isHeader&#x27; : true,
+					&#x27;isData&#x27; : false,
+					&#x27;categoryCells&#x27; : cellCollection.getUniqueCells(this.categoryIndices),
+					&#x27;valueCells&#x27; : cellCollection.getUniqueCells(this.valueIndices),
+					&#x27;values&#x27; : values
+				});
+			}
+			&#x2F;**
+			 *	A collection of all Records parsed from the table.
+			 *
+			 *	@property records
+			 *	@type {SparseDataCollection}
+			 *	@readOnly
+			 **&#x2F;
+			this.records = new SparseDataCollection({
+				&#x27;values&#x27; : $.extend({}, headerRecords, dataRecords),
+				&#x27;orderBy&#x27; : &#x27;ascending&#x27;
+			});
+			&#x2F;**
+			 *	A collection of all header Records parsed from the table.
+			 *
+			 *	@property headerRecords
+			 *	@type {SparseDataCollection}
+			 *	@readOnly
+			 **&#x2F;
+			this.headerRecords = new SparseDataCollection({
+				&#x27;values&#x27; : headerRecords,
+				&#x27;orderBy&#x27; : &#x27;ascending&#x27;
+			});
+			&#x2F;**
+			 *	A collection of all data Records parsed from the table.
+			 *
+			 *	@property dataRecords
+			 *	@type {SparseDataCollection}
+			 *	@readOnly
+			 **&#x2F;
+			this.dataRecords = new SparseDataCollection({
+				&#x27;values&#x27; : dataRecords,
+				&#x27;orderBy&#x27; : &#x27;ascending&#x27;
+			});
+		};
+		
+		return createClass({
+			&#x2F;**
+			 *	LayoutTable Constructor Function
+			 *
+			 *	@method init
+			 *	@param layoutTable {LayoutTable} The LayoutTable instance that proxies
+			 *	the physical table for this DataTable instance.
+			 *	@param options {object} The options object for parsing the data out of
+			 *	the LayoutTable.  See the jQuery.autoChart module for a description of
+			 *	the options and defaults.
+			 **&#x2F;
+			init : function(layoutTable, options){
+				&#x2F;**
+				 *	The options object passed to the constructor function.
+				 *
+				 *	@property options
+				 *	@type {object}
+				 *	@readOnly
+				 **&#x2F;
+				this.options = options;
+				&#x2F;&#x2F; Digest the options
+				&#x2F;**
+				 *	The layout type of this datatable as defined in the options
+				 *	object.
+				 *
+				 *	@property layout
+				 *	@type {string}
+				 *	@readOnly
+				 **&#x2F;
+				this.layout = options.layout;
+				&#x2F;**
+				 *	The LayoutTable that proxies the physical table for this data table.
+				 *
+				 *	@property layoutTable
+				 *	@type {LayoutTable}
+				 *	@readOnly
+				 **&#x2F;
+				this.layoutTable = layoutTable;
+				&#x2F;**
+				 *	The CellCollection that contains the field information for this table.
+				 *	If the layout is &#x27;vertical&#x27;, then the fieldCollection will be the
+				 *	columns from the layoutTable.  If the layout &#x27;horizontal&#x27;, then the
+				 *	fieldCollection will be the rows from the layoutTable.
+				 *
+				 *	@property fieldCollection
+				 *	@type {CellCollection}
+				 *	@readOnly
+				 **&#x2F;
+				this.fieldCollection = this.layout == &#x27;vertical&#x27; ?
+					layoutTable.columns : layoutTable.rows,
+				&#x2F;**
+				 *	The CellCollection that contains the record information for this table.
+				 *	If the layout is &#x27;vertical&#x27;, then the recordCollection will be the
+				 *	rows from the layoutTable.  If the layout &#x27;horizontal&#x27;, then the
+				 *	recordCollection will be the columns from the layoutTable.
+				 *
+				 *	@property recordCollection
+				 *	@type {CellCollection}
+				 *	@readOnly
+				 **&#x2F;
+				this.recordCollection = this.layout == &#x27;vertical&#x27; ?
+					layoutTable.rows : layoutTable.columns,
+				&#x2F;&#x2F; Record Indices;
+				this.headerIndices = parseIndices(
+					options.header, this.recordCollection.length);
+				this.dataIndices = parseIndices(
+					options.data, this.recordCollection.length);
+				&#x2F;&#x2F; Field Indices
+				this.valueIndices = parseIndices(
+					options.value, this.fieldCollection.length);
+				this.categoryIndices = parseIndices(
+					options.category, this.fieldCollection.length);
+				
+				parseTitle.call(this, options);
+				parseUnits.call(this, options);
+				parseFields.call(this, options);
+				parseRecords.call(this, options);
+			}
+		});
+	}();
+	
+	var MultiDataTable = createClass({
+		
+		init : function(tableEle, options, dataTableClass){
+			dataTableClass = dataTableClass || DataTable;
+			var i;
+			
+			this.options = $.map(
+				$.isArray(options) ? options : [options],
+				function(o){
+					return $.extend(true, {}, defaultOptions, o);
+				}
+			);
+			this.dataTables = [];
+			this.layoutTable = new LayoutTable(tableEle)
+			
+			for(i=0; i&lt;this.options.length; i++){
+				this.dataTables.push(
+					new dataTableClass(this.layoutTable, this.options[i])
+				);
+			};
+		}
+	});
+	
+	&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;
+	&#x2F;&#x2F; Charting Classes &#x2F;&#x2F;
+	&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;
+	
+	var ChartElement = createClass({
+		init : function(properties){
+			this.$super(properties);
+			this.applyProperties([
+				&#x27;title&#x27; &#x2F;&#x2F; The title of the element
+			], properties);
+		}
+	}, DynamicClass.prototype)
+	
+	var Series = createClass({
+		init : function(properties){
+			this.$super(properties);
+			this.applyProperties([
+				&#x27;data&#x27;, &#x2F;&#x2F; The field for this series
+				&#x27;units&#x27;, &#x2F;&#x2F; The series units,
+				&#x27;axis&#x27;&#x2F;&#x2F; A reference to the related axis element
+			], properties);
+		}
+	}, ChartElement.prototype);
+	
+	var XAxis = function(){
+		
+		function parseCategories(properties){
+			var categories = this.categories,
+			dateCategories = [],
+			isDateTime = true;
+			
+			for(i=0; i&lt;categories.length &amp;&amp; isDateTime; i++){
+				var dateVal = Date.parse(categories[i])
+				isDateTime &amp;= !isNaN(dateVal);
+				dateCategories.push(dateVal);
+			}
+			if(isDateTime)
+				this.dateCategories = dateCategories;
+			this.isDateTime = isDateTime;
+		}
+	
+		return createClass({
+			init : function(properties){
+				this.$super(properties);
+				this.applyProperties([
+					&#x27;categories&#x27;
+				], properties);
+				parseCategories.call(this);
+			}
+		}, ChartElement.prototype);
+	}();
+	
+	var YAxis = createClass({
+		init : function(properties){
+			this.$super(properties);
+			this.applyProperties([
+				&#x27;nonZeroMin&#x27;
+			], properties);
+		}
+	}, ChartElement.prototype)
+	
+	var ChartableTable = createClass({
+		getChartData : function(fieldIndices){
+			var table = this,
+			xAxis = {}
+			series = [],
+			yAxes = [],
+			uniqueUnits = [],
+			unitsMap = {},
+			nonZeroMin = false;
+			
+			fieldIndices = parseIndices(
+				fieldIndices, this.fieldCollection.length);
+			
+			series = $.map(fieldIndices, function(i, j){
+				var field = table.valueFields.get(i),
+				serie, axisIndex;
+				
+				if(field.units in unitsMap){
+					axisIndex = unitsMap[field.units];
+				}
+				else{
+					axisIndex = unitsMap[field.units] = uniqueUnits.length;
+					uniqueUnits.push(field.units);
+				}
+				if(field){
+					serie = new Series({
+						&#x27;title&#x27; : $.map(field.headerCells, function(c, i){
+							return c.getValue();
+						}).join(&#x27; &#x27;),
+						&#x27;data&#x27; : $.map(field.dataCells, function(c, i){
+							var val = parseFloat(
+								c.getValue()
+								&#x2F;&#x2F; Strip letters, commas, and spaces
+								.replace(&#x2F;[A-Za-z,\s]&#x2F;g, &#x27;&#x27;)
+							)
+							nonZeroMin |= val &lt; 0;
+							return !isNaN(val) ? val : [null];
+						}),
+						&#x27;units&#x27; : field.units,
+						&#x27;axis&#x27; : axisIndex
+					}); 
+				}
+				
+				return serie;
+			});
+			
+			xAxis = new XAxis({
+				&#x27;title&#x27; : this.categoryFields.map(function(i, j){
+						var field = this;
+						return $.map(field.headerCells, function(c, i){
+							return c.getValue();
+						}).join(&#x27; &#x27;)
+					}).join(&#x27; &#x2F; &#x27;),
+				&#x27;categories&#x27; : this.dataRecords.map(function(i, j){
+					var record = this;
+					return $.map(record.categoryCells, function(cell){
+						return cell.getValue()
+					}).join(&#x27; &#x2F; &#x27;);
+				})
+			});
+			
+			yAxes = $.map(uniqueUnits, function(u, i){
+				var axis = new YAxis({
+					&#x27;title&#x27; : u,
+					&#x27;nonZeroMin&#x27; : nonZeroMin
+				});
+				return axis;
+			});
+			
+			return {
+				&#x27;title&#x27; : this.title,
+				&#x27;series&#x27; : series,
+				&#x27;xAxis&#x27; : xAxis,
+				&#x27;yAxes&#x27; : yAxes
+			};
+		},
+		createHighchartOptions : function(indices, baseOptions){
+			var chartData = this.getChartData(indices);
+			
+			return $.extend(true, {}, baseOptions, {
+				&#x27;title&#x27; : {
+					&#x27;text&#x27; : chartData.title
+				},
+				&#x27;series&#x27; : $.map(chartData.series, function(s, i){
+					return {
+						&#x27;name&#x27; : s.title + (chartData.yAxes.length &gt; 1 ? &#x27;(&#x27; + s.units + &#x27;)&#x27; : &#x27;&#x27;),
+						&#x27;data&#x27; : chartData.xAxis.isDateTime ? $.map(s.data,
+							function(d, i){
+								return [[chartData.xAxis.dateCategories[i], d]]
+							}) : s.data,
+						&#x27;yAxis&#x27; : s.axis
+					}
+				}),
+				&#x27;xAxis&#x27; : {
+					&#x27;categories&#x27; : chartData.xAxis.isDateTime ? void 0 :
+						chartData.xAxis.categories,
+					&#x27;type&#x27; : chartData.xAxis.isDateTime  ? &#x27;datetime&#x27; : &#x27;linear&#x27;
+				},
+				&#x27;yAxis&#x27; : $.map(chartData.yAxes, function(a, i){
+					return $.extend(true, {
+						&#x27;title&#x27; : {
+							&#x27;text&#x27; : a.title,
+							&#x27;align&#x27; : chartData.yAxes.length &gt; 2 ? &#x27;middle&#x27; : void 0
+						},
+						&#x27;min&#x27; : a.nonZeroMin ? null : 0,
+						&#x27;opposite&#x27; : i % 2
+					}, baseOptions.yAxis);
+				})
+			});
+		}
+	}, DataTable.prototype);
+	
+	var InteractiveChartableTable = createClass({
+		
+		init : function(tableEle, options, onCharted){
+			var chartableTable, valueCell, checkboxes,
+			addRows = [], addColumns = [], addGroup, addArray,
+			addIndex, categoryCellStartIndex, categoryCellEndIndex,
+			buttons, checkbox, valueIndex, buttonCell, i, j, k,
+			rowsAdded, columnsAdded, isMultiChartTable;
+			
+			this.$super(tableEle, options, ChartableTable);
+			
+			for(i=0; i&lt;this.dataTables.length; i++){
+				&#x2F;&#x2F; The current chartable table being processed
+				chartableTable = this.dataTables[i];
+				&#x2F;&#x2F; Is this a multichartable tabl
+				isMultiChartTable = chartableTable.options.multiChart !== void 0 ?
+					chartableTable.options.multiChart : chartableTable.valueFields.getLength() &gt; 1;
+				&#x2F;&#x2F; Are we adding columns or rows
+				addGroup =  chartableTable.layout == &#x27;vertical&#x27; ? addRows : addColumns;
+				&#x2F;&#x2F; The index for the ror&#x2F;column to be added
+				addIndex = chartableTable.options.controlsIndex ||
+					chartableTable.headerIndices[chartableTable.headerIndices.length - 1];
+				&#x2F;&#x2F; The current row&#x2F;column being processed, represented by an array
+				addArray = addGroup[addIndex] || (addGroup[addIndex] = []);
+				&#x2F;&#x2F; The category cell where we will add the graph and clear buttons for
+				&#x2F;&#x2F; multi-chartable tables, or a spacer for single chartable tables
+				categoryCell = new Cell();
+				&#x2F;&#x2F; The row&#x2F;column indices where the category cell will start and end
+				categoryCellStartIndex = chartableTable.categoryIndices[0];
+				categoryCellEndIndex = chartableTable.valueIndices[0];
+				
+				&#x2F;&#x2F; Loop from the start and end indices for the category cell, adding it
+				&#x2F;&#x2F; to that position in the addArray, and incrementing its column&#x2F;rowspan
+				&#x2F;&#x2F; for vertical&#x2F;horizontal tables
+				for(j=categoryCellStartIndex; j&lt;categoryCellEndIndex; j++){
+					addArray[j] = categoryCell;
+					if(j &lt; categoryCellEndIndex - 1)
+						chartableTable.layout == &#x27;vertical&#x27; ?
+							categoryCell.incrementColspan(true) :
+							categoryCell.incrementRowspan(true);
+				}
+				&#x2F;&#x2F; If this is a multichartable table, create a jQuery collection to store the
+				&#x2F;&#x2F; checkboxes, used later when generating the charting buttons.
+				if(isMultiChartTable)
+					checkboxes = $();
+				
+				&#x2F;&#x2F; Loop through the value indices, adding cells and checkboxes&#x2F;buttons for mulit&#x2F;single
+				&#x2F;&#x2F; chartable tables
+				for(j=0; j&lt;chartableTable.valueIndices.length; j++){
+					valueIndex = chartableTable.valueIndices[j];
+					addArray[valueIndex] = valueCell = new Cell();
+					if(isMultiChartTable){
+						checkboxes = checkboxes.add(checkbox = this.generateMultiChartCheckbox(valueIndex));
+						valueCell.element.append(checkbox);
+					}
+					else{
+						valueCell.element.append(this.generateSingleChartButton(valueIndex, chartableTable, onCharted))
+					}
+				}
+				&#x2F;&#x2F; If this is a multi-chartable table, create and add the charting buttons
+				if(isMultiChartTable){
+					buttons = this.generateMultiChartButtons(checkboxes, chartableTable, onCharted);
+					categoryCell.element.append(buttons.graphButton);
+					categoryCell.element.append(buttons.clearButton);
+				}
+			}
+			
+			rowsAdded = 0;
+			columnsAdded = 0;
+			
+			&#x2F;&#x2F; Loop through the add rows and fill in any empty spots with new cells
+			for(i=0; i&lt;addRows.length; i++){
+				if(addRows[i]){
+					for(j=0; j&lt;this.layoutTable.columns.length; j++){
+						if(!addRows[i][j]){
+							addRows[i][j] = new Cell();
+						}
+					}
+				}
+			}
+			
+			&#x2F;&#x2F; Loop through the add columns, and fill in any empty spots by incrementing
+			&#x2F;&#x2F; the colspan of existing cells
+			for(i=0; i&lt;addColumns.length; i++){
+				if(addColumns[i]){
+					for(j=0; j&lt;this.layoutTable.rows.length; j++){
+						if(!addColumns[i][j]){
+							addColumns[i][j] = this.layoutTable.rows[j].cells[i + 1];
+							addColumns[i][j].incrementColspan();
+						}
+					}
+				}
+			}
+			
+			&#x2F;&#x2F; Add the rows
+			for(i=0; i&lt;addRows.length; i++){
+				if(addRows[i])
+					this.layoutTable.addRow(i + rowsAdded++, addRows[i]);
+			}
+			&#x2F;&#x2F; Add the columns
+			for(i=0; i&lt;addColumns.length; i++){
+				if(addColumns[i])
+					this.layoutTable.addColumn(i + columnsAdded++, addColumns[i]);
+			}
+		},
+		
+		generateMultiChartButtons : function(checkboxes, chartableTable, onCharted){
+			graphButton = $(&#x27;&lt;button&gt;&lt;&#x2F;button&gt;&#x27;).text(&#x27;Graph&#x27;);
+			clearButton = $(&#x27;&lt;button&gt;&lt;&#x2F;button&gt;&#x27;).text(&#x27;Clear&#x27;);
+			
+			graphButton.click(function(){
+				var checked = checkboxes.filter(&#x27;:checked&#x27;),
+				indices = [];
+				
+				checked.each(function(i, ele){
+					indices.push($(ele).data(&#x27;index&#x27;));
+				});
+				
+				if(indices.length &gt; 0)
+					onCharted.call(chartableTable, indices);
+			});
+			
+			clearButton.click(function(){
+				checkboxes.filter(&#x27;:checked&#x27;).attr(&#x27;checked&#x27;, false);
+			});
+			
+			return {
+				&#x27;graphButton&#x27; : graphButton,
+				&#x27;clearButton&#x27; : clearButton
+			};
+		},
+		
+		generateMultiChartCheckbox : function(dataIndex){
+			return $(&#x27;&lt;input type=&quot;checkbox&quot;&gt;&lt;&#x2F;input&gt;&#x27;).
+				data(&#x27;index&#x27;, dataIndex);
+		},
+		
+		generateSingleChartButton : function(valueIndex, chartableTable, onCharted){
+			button = $(&#x27;&lt;button&gt;&lt;&#x2F;button&gt;&#x27;).text(&#x27;Graph&#x27;);
+			
+			button.click(function(){
+				onCharted.call(chartableTable, [valueIndex]);
+			});
+			
+			return button;
+		},
+	}, MultiDataTable.prototype);
+	
+	var FancyboxChartableTable = createClass({
+		init : function(tableEle, options){
+			var self = this,
+			autochartContainerId = &#x27;autochart_container_&#x27; + new Date().getTime();
+			
+			this.highchartsDock = $(&#x27;&lt;div&gt;&lt;&#x2F;div&gt;&#x27;)
+				.css(&#x27;display&#x27;, &#x27;none&#x27;)
+				.appendTo(&#x27;body&#x27;);
+			this.highchartsDiv = $(&#x27;&lt;div&gt;&lt;&#x2F;div&gt;&#x27;)
+				.attr(&#x27;id&#x27;, autochartContainerId)
+				.addClass(&#x27;autochart_container&#x27;)
+				.appendTo(this.highchartsDock);
+			this.highchartsLink = $(&#x27;&lt;a&gt;&lt;&#x2F;a&gt;&#x27;)
+				.attr(&#x27;href&#x27;, &#x27;#&#x27; + autochartContainerId)
+				.appendTo(this.highchartsDock)
+				.fancybox();
+			
+			this.$super(tableEle, options, function(indices){
+				if(self.chart){
+					self.chart.destroy();
+					self.chart = null;
+				}
+				self.highchartsLink.click();
+				self.chart = new Highcharts.Chart(this.createHighchartOptions(indices,
+					$.extend(true, {}, this.options.chartOptions, {
+					chart : {
+						renderTo : self.highchartsDiv.get(0),
+					}
+				})));
+			})
+		}
+	}, InteractiveChartableTable.prototype);
+	
+	&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;
+	&#x2F;&#x2F; Plugin Functions &#x2F;&#x2F;
+	&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;&#x2F;
+	
+	$(function(){
+		$(&#x27;table.scrape-horizontal, table.scrape-vertical&#x27;).each(function(){
+			var tableEle = $(this);
+			tableEle.autoChart(generateOptions(tableEle));
+		});
+	});
+
+	$.fn.autoChart = function(options){
+		return new FancyboxChartableTable(this, options);
+	};
+	
+	$.extend($.fn.autoChart, {
+		&#x27;LayoutTable&#x27; : LayoutTable,
+		&#x27;DataTable&#x27; : DataTable,
+		&#x27;MultiDataTable&#x27; : MultiDataTable,
+		&#x27;ChartableTable&#x27; : ChartableTable,
+		&#x27;InteractiveChartableTable&#x27; : InteractiveChartableTable,
+		&#x27;FancyboxChartableTable&#x27; : FancyboxChartableTable
+	});
+	
+}(jQuery))
+    </pre>
+</div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="..&#x2F;assets/vendor/prettify/prettify-min.js"></script>
+<script>prettyPrint();</script>
+<script src="..&#x2F;assets/js/yui-prettify.js"></script>
+<script src="..&#x2F;assets/../api.js"></script>
+<script src="..&#x2F;assets/js/api-filter.js"></script>
+<script src="..&#x2F;assets/js/api-list.js"></script>
+<script src="..&#x2F;assets/js/api-search.js"></script>
+<script src="..&#x2F;assets/js/apidocs.js"></script>
+</body>
+</html>

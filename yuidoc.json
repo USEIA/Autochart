@@ -1,0 +1,8 @@
+{
+    "name": "The jQuery.autoChart API",
+    "description": "A jQuery plugin to scrape and chart HTML tables",
+    "options": {
+        "outdir": "docs",
+        "paths": "js"
+    }
+}
