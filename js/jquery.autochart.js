@@ -77,7 +77,11 @@
  *			//	defaults to true for multi-field and false for single-field
  *			//	tables
  *		
- *			multiChart : void 0
+ *			multiChart : void 0,
+ *
+ *			// The maximum number of value fields units that can be charted at one time.
+ *
+ *			maxChartableUnits : 4
  *		};
  *	
  *	@module jQuery.autoChart
@@ -99,7 +103,8 @@
 		category : void 0,
 		value : void 0,
 		controlsIndex : void 0,
-		multiChart : void 0
+		multiChart : void 0,
+		maxChartableUnits : 4
 	};
 	
 	/////////////////////
@@ -556,7 +561,7 @@
 				 *	@readOnly
 				 **/
 				'cells'
-			], properties);
+			], values);
 			for(cell = this.cells[i=0]; i<this.cells.length; cell = this.cells[++i])
 				if(this.element)
 					if(cell.element.parents().find(this.element).length == 0)
@@ -1153,6 +1158,7 @@
 	 *	a collection of Fields and Records.
 	 *
 	 *	@class DataTable
+	 *	@constructor
 	 **/
 	var DataTable = function(){
 		
@@ -1501,8 +1507,27 @@
 		});
 	}();
 	
+	/**
+	 *	Proxies a collection of DataTable instances for a single physical table.
+	 *	Its constructor takes an array of options, as opposed to a single options
+	 *	object, as well as a constructor function to use to generate DataTable
+	 *	instances from the options array.
+	 *
+	 *	@class MultiDataTable
+	 *	@constructor
+	 **/
 	var MultiDataTable = createClass({
-		
+		/**
+		 *	MultiDataTable Constructor Function
+		 *
+		 *	@method init
+		 *	@param tableEle {jQuery} The physical table to be proxied
+		 *	@param options {array} An array of options objects from which to
+		 *	generate the collection of datatables.  See jQuery.autoChart module
+		 *	for documentation of the options structure and default values.
+		 *	@param dataTableClass {function} A constructor function to use to
+		 *	generate the individual DataTable instances proxied by this collection.
+		 **/
 		init : function(tableEle, options, dataTableClass){
 			dataTableClass = dataTableClass || DataTable;
 			var i;
@@ -1696,10 +1721,34 @@
 			});
 		}
 	}, DataTable.prototype);
-	
+	/**
+	 *	An extension of the MultiDataTable class.  Utilizes the ChartableTable class to
+	 *	create a set of interactive chartable tables using checkboxes and buttons.
+	 *
+	 *	@class InteractiveChartableTable
+	 *	@extends MultiDataTable
+	 *	@constructor
+	 **/
 	var InteractiveChartableTable = createClass({
-		
-		init : function(tableEle, options, onCharted){
+		/**
+		 *	InteractiveChartableTable Constructor Function
+		 *
+		 *	@method init
+		 *	@param tableEle {jQuery} The physical table to be proxied
+		 *	@param options {array} An array of options objects from which to
+		 *	generate the collection of datatables.  See jQuery.autoChart module
+		 *	for documentation of the options structure and default values.
+		 *	@param onCharted {function} A callback to be invoked when a charting
+		 *	button is clicked.  The function should take an array of selectedfield
+		 *	indices as an argument.
+		 *	@param onSeriesSelected {function} A callback to be invoked when a
+		 *	series is selected for charting in multi-chartable tables.  The function
+		 *	should take an array of selected field indices as an argument.  Returning
+		 *	false from the callback disables all unchecked checkboxes.  Returning true
+		 *	form the callback enables all disabled checkboxes, and returning an array
+		 *	of indices disables all checkboxes at the associated field indices.
+		 **/
+		init : function(tableEle, options, onCharted, onSeriesSelected){
 			var chartableTable, valueCell, checkboxes,
 			addRows = [], addColumns = [], addGroup, addArray,
 			addIndex, categoryCellStartIndex, categoryCellEndIndex,
@@ -1758,7 +1807,7 @@
 				}
 				// If this is a multi-chartable table, create and add the charting buttons
 				if(isMultiChartTable){
-					buttons = this.generateMultiChartButtons(checkboxes, chartableTable, onCharted);
+					buttons = this.generateMultiChartButtons(checkboxes, chartableTable, onCharted, onSeriesSelected);
 					categoryCell.element.append(buttons.graphButton);
 					categoryCell.element.append(buttons.clearButton);
 				}
@@ -1803,8 +1852,8 @@
 			}
 		},
 		
-		generateMultiChartButtons : function(checkboxes, chartableTable, onCharted){
-			graphButton = $('<button></button>').text('Graph');
+		generateMultiChartButtons : function(checkboxes, chartableTable, onCharted, onSeriesSelected){
+			var graphButton = $('<button></button>').text('Graph'),
 			clearButton = $('<button></button>').text('Clear');
 			
 			graphButton.click(function(){
@@ -1823,6 +1872,28 @@
 				checkboxes.filter(':checked').attr('checked', false);
 			});
 			
+			if(onSeriesSelected){
+				checkboxes.change(function(){
+					var indices = [],
+					disabledIndices;
+					
+					checkboxes.filter(':checked').each(function(i, ele){
+						indices.push($(ele).data('index'));
+					});
+					disabledIndices = onSeriesSelected.call(chartableTable, indices);
+					
+					if(disabledIndices === false)
+						checkboxes.not(':checked').attr('disabled', true);
+					else if(disabledIndices instanceof Array)
+						$.each(disabledIndices, function(i, j){
+							checkboxes.eq(j).attr('disabled', true);
+						});
+					else
+						checkboxes.filter(':disabled').attr('disabled', false);
+					
+				});
+			}
+			
 			return {
 				'graphButton' : graphButton,
 				'clearButton' : clearButton
@@ -1830,8 +1901,9 @@
 		},
 		
 		generateMultiChartCheckbox : function(dataIndex){
-			return $('<input type="checkbox"></input>').
-				data('index', dataIndex);
+			return $('<input></input>')
+				.attr('type', 'checkbox')
+				.data('index', dataIndex);
 		},
 		
 		generateSingleChartButton : function(valueIndex, chartableTable, onCharted){
@@ -1842,7 +1914,7 @@
 			});
 			
 			return button;
-		},
+		}
 	}, MultiDataTable.prototype);
 	
 	var FancyboxChartableTable = createClass({
@@ -1862,7 +1934,9 @@
 				.appendTo(this.highchartsDock)
 				.fancybox();
 			
-			this.$super(tableEle, options, function(indices){
+			this.$super(tableEle, options,
+			// onCharted
+			function(indices){
 				if(self.chart){
 					self.chart.destroy();
 					self.chart = null;
@@ -1871,10 +1945,41 @@
 				self.chart = new Highcharts.Chart(this.createHighchartOptions(indices,
 					$.extend(true, {}, this.options.chartOptions, {
 					chart : {
-						renderTo : self.highchartsDiv.get(0),
+						renderTo : self.highchartsDiv.get(0)
 					}
 				})));
-			})
+			},
+			// onSeriesSelected
+			function(indices){
+				var table = this,
+				unitsMap = {},
+				// loop through the selected indices and generate an array of unique units
+				unitsList = $.map(indices, function(i, j){
+					var field = table.valueFields.get(i);
+					
+					if(!(field.units in unitsMap)){
+						unitsMap[field.units] = true;
+						return field.units;
+					}
+					else{
+						return null;
+					}
+				});
+				// if the current number of units equals the maxium number of chartable
+				// units, return an array of indices related to non-charted units so that
+				// the associated checkboxes will be disabled.
+				if(unitsList.length == table.options.maxChartableUnits){
+					return table.valueFields.map(function(i, j){
+						var field = this;
+						if(!(field.units in unitsMap))
+							return i
+						else
+							return null
+					});
+				}
+				else
+					return true;
+			});
 		}
 	}, InteractiveChartableTable.prototype);
 	

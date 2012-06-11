@@ -21,7 +21,9 @@
                 "Field": 1,
                 "Record": 1,
                 "SparseDataCollection": 1,
-                "DataTable": 1
+                "DataTable": 1,
+                "MultiDataTable": 1,
+                "InteractiveChartableTable": 1
             },
             "fors": {},
             "namespaces": {}
@@ -43,14 +45,16 @@
                 "Field": 1,
                 "Record": 1,
                 "SparseDataCollection": 1,
-                "DataTable": 1
+                "DataTable": 1,
+                "MultiDataTable": 1,
+                "InteractiveChartableTable": 1
             },
             "fors": {},
             "namespaces": {},
             "tag": "module",
             "file": "js\\jquery.autochart.js",
-            "line": 1151,
-            "description": "The jQuery.autoChart plugin scrapes html tables, and exposes the data\nfor charting.  The plugin can also add a set of controls to the table\nto allow for series selection, and charting using Highcharts in a\nfancybox modal window.\n\n\tdefaultOptions = {\n\n\t\t//\tSpecifies the layout of the table.  A horizontal table has its\n\t\t//\trecords as columns, and it's fields as rows. A vertical table\n\t\t//\thas its records as rows, and fields as columns.\n\n\t\tlayout : 'horizontal',\n\n\t\t//\tSpecify either a text value, or a column/row address for the\n\t\t//\tTitle.  Optionally, a regular expression and a match index\n\t\t//\tcan be provided to extract a portion of the text in a cell.\n\t\t//\t\n\t\t//\ttitle : {\n\t\t//\t\ttext : (String or undefined)\n\t\t//\t\trow : (Number or undefined)\n\t\t//\t\tcolumn : (Number or undefined)\n\t\t//\t\tregex : {\n\t\t//\t\t\tpattern : (String or RegEx)\n\t\t//\t\t\tmatch : (Number)\n\t\t//\t\t}\n\t\t//\t}\n\t\t\n\t\ttitle : void 0,\n\t\n\t\t//\tSame as title but for the chart units.  Additionally for the\n\t\t//\tunits, if only a row or column is provided, it is assumed\n\t\t//\tthat the record contains multiple units that are associated\n\t\t//\twith various fields.  This allows for multiple units to be\n\t\t//\tcontained in the same table.\n\t\t//\t\n\t\t//\tunits : {\n\t\t//\t\ttext : (String or undefined)\n\t\t//\t\trow : (Number or undefined)\n\t\t//\t\tcolumn (Number or undefined)\n\t\t//\t\tregex : {\n\t\t//\t\t\tpattern : (String or RegEx)\n\t\t//\t\t\tmatch : (Number)\n\t\t//\t\t}\n\t\t//\t}\n\n\t\tunits : void 0,\n\t\n\t\t//\tFormat is {Number} for a specific record, {Number}-{Number}\n\t\t//\tfor a range, and {Number}+ for all records after and including a\n\t\t//\tspecific record.\n\t\t\n\t\theader : void 0,\n\t\t\n\t\t//\tSame as header but for the data (data) records.\n\t\t\n\t\tdata : void 0,\n\t\t\n\t\t//\tSame as header but for the footer rows (footers are always rows).\n\t\t\n\t\tfooter : void 0,\n\t\t\n\t\t//\tSame as header but for the category fields\n\t\t\n\t\tcategory : void 0,\n\t\t\n\t\t//\tSame as header but for the value fields\n\t\t\n\t\tvalue : void 0,\n\t\t\n\t\t//\tSpecifies a record index to insert the charting controls,\n\t\t//\tdefaults to the last header record\n\t\t\n\t\tcontrolsIndex : void 0,\n\t\t\n\t\t//\tSpecifies whether or not the table supports multi-charting,\n\t\t//\tdefaults to true for multi-field and false for single-field\n\t\t//\ttables\n\t\n\t\tmultiChart : void 0\n\t};",
+            "line": 1724,
+            "description": "The jQuery.autoChart plugin scrapes html tables, and exposes the data\nfor charting.  The plugin can also add a set of controls to the table\nto allow for series selection, and charting using Highcharts in a\nfancybox modal window.\n\n\tdefaultOptions = {\n\n\t\t//\tSpecifies the layout of the table.  A horizontal table has its\n\t\t//\trecords as columns, and it's fields as rows. A vertical table\n\t\t//\thas its records as rows, and fields as columns.\n\n\t\tlayout : 'horizontal',\n\n\t\t//\tSpecify either a text value, or a column/row address for the\n\t\t//\tTitle.  Optionally, a regular expression and a match index\n\t\t//\tcan be provided to extract a portion of the text in a cell.\n\t\t//\t\n\t\t//\ttitle : {\n\t\t//\t\ttext : (String or undefined)\n\t\t//\t\trow : (Number or undefined)\n\t\t//\t\tcolumn : (Number or undefined)\n\t\t//\t\tregex : {\n\t\t//\t\t\tpattern : (String or RegEx)\n\t\t//\t\t\tmatch : (Number)\n\t\t//\t\t}\n\t\t//\t}\n\t\t\n\t\ttitle : void 0,\n\t\n\t\t//\tSame as title but for the chart units.  Additionally for the\n\t\t//\tunits, if only a row or column is provided, it is assumed\n\t\t//\tthat the record contains multiple units that are associated\n\t\t//\twith various fields.  This allows for multiple units to be\n\t\t//\tcontained in the same table.\n\t\t//\t\n\t\t//\tunits : {\n\t\t//\t\ttext : (String or undefined)\n\t\t//\t\trow : (Number or undefined)\n\t\t//\t\tcolumn (Number or undefined)\n\t\t//\t\tregex : {\n\t\t//\t\t\tpattern : (String or RegEx)\n\t\t//\t\t\tmatch : (Number)\n\t\t//\t\t}\n\t\t//\t}\n\n\t\tunits : void 0,\n\t\n\t\t//\tFormat is {Number} for a specific record, {Number}-{Number}\n\t\t//\tfor a range, and {Number}+ for all records after and including a\n\t\t//\tspecific record.\n\t\t\n\t\theader : void 0,\n\t\t\n\t\t//\tSame as header but for the data (data) records.\n\t\t\n\t\tdata : void 0,\n\t\t\n\t\t//\tSame as header but for the footer rows (footers are always rows).\n\t\t\n\t\tfooter : void 0,\n\t\t\n\t\t//\tSame as header but for the category fields\n\t\t\n\t\tcategory : void 0,\n\t\t\n\t\t//\tSame as header but for the value fields\n\t\t\n\t\tvalue : void 0,\n\t\t\n\t\t//\tSpecifies a record index to insert the charting controls,\n\t\t//\tdefaults to the last header record\n\t\t\n\t\tcontrolsIndex : void 0,\n\t\t\n\t\t//\tSpecifies whether or not the table supports multi-charting,\n\t\t//\tdefaults to true for multi-field and false for single-field\n\t\t//\ttables\n\t\n\t\tmultiChart : void 0,\n\n\t\t// The maximum number of value fields units that can be charted at one time.\n\n\t\tmaxChartableUnits : 4\n\t};",
             "requires": [
                 "jQuery",
                 "Highcharts",
@@ -70,7 +74,7 @@
             "module": "jQuery.autoChart",
             "namespace": "",
             "file": "js\\jquery.autochart.js",
-            "line": 236,
+            "line": 241,
             "description": "Base class for most classes in the module.  It allows\nfor classes that take an object as a constructor argument, and\napply a set of the properties from the object to the class instance.\nIf the properties are not found on the object, then the instance\nwill pass hasOwnProperty for the missing properties, with undefined\nvalues.",
             "is_constructor": 1
         },
@@ -85,7 +89,7 @@
             "module": "jQuery.autoChart",
             "namespace": "",
             "file": "js\\jquery.autochart.js",
-            "line": 282,
+            "line": 287,
             "description": "Base class for most all table elements (cell, row, column).  This class\nis a wrapper for a jQuery element, and provides some utility methods to\ninteract with the underlying element.",
             "extends": "DynamicClass",
             "is_constructor": 1
@@ -101,7 +105,7 @@
             "module": "jQuery.autoChart",
             "namespace": "",
             "file": "js\\jquery.autochart.js",
-            "line": 369,
+            "line": 374,
             "description": "Wrapper class for a table cell element.",
             "extends": "TableElement",
             "is_constructor": 1
@@ -117,7 +121,7 @@
             "module": "jQuery.autoChart",
             "namespace": "",
             "file": "js\\jquery.autochart.js",
-            "line": 533,
+            "line": 538,
             "description": "Base class for cell collections (Row, Column).",
             "extends": "TableElement",
             "is_constructor": 1
@@ -133,7 +137,7 @@
             "module": "jQuery.autoChart",
             "namespace": "",
             "file": "js\\jquery.autochart.js",
-            "line": 628,
+            "line": 633,
             "description": "Wraps a row element and proxies it's collection of cells.",
             "extends": "CellCollection",
             "is_constructor": 1
@@ -149,7 +153,7 @@
             "module": "jQuery.autoChart",
             "namespace": "",
             "file": "js\\jquery.autochart.js",
-            "line": 664,
+            "line": 669,
             "description": "Wraps a colulmn element and proxies it's collection of cells.",
             "extends": "CellCollection",
             "is_constructor": 1
@@ -165,7 +169,7 @@
             "module": "jQuery.autoChart",
             "namespace": "",
             "file": "js\\jquery.autochart.js",
-            "line": 696,
+            "line": 701,
             "description": "Parses and proxies an HTML table as a set of Row and Column collections.",
             "extends": "TableElement",
             "is_constructor": 1
@@ -181,7 +185,7 @@
             "module": "jQuery.autoChart",
             "namespace": "",
             "file": "js\\jquery.autochart.js",
-            "line": 851,
+            "line": 856,
             "description": "Base class for all data collections (Record and Field)",
             "extends": "DynamicClass",
             "is_constructor": 1
@@ -197,7 +201,7 @@
             "module": "jQuery.autoChart",
             "namespace": "",
             "file": "js\\jquery.autochart.js",
-            "line": 880,
+            "line": 885,
             "description": "A collection of cells that represent a field. Fields can be one of two types:\n\n1. Value Fields: Represent data series in a table.\n1. Category Fields: Contain category values that correlate to the data contained in value fields.\n\nFields contain two sub collections (arrays):\n\n1. Header Cells: These cells describe the data cells.\n1. Data Cells: These cells contain values and categories for value and category fields respectively.",
             "extends": "DataCollection",
             "is_constructor": 1
@@ -213,7 +217,7 @@
             "module": "jQuery.autoChart",
             "namespace": "",
             "file": "js\\jquery.autochart.js",
-            "line": 951,
+            "line": 956,
             "description": "A collection of cells that represent a record. Records can be one of two types:\n\n1. Header Records: Describe the data contained in the record.  These headers can contain\ncategories, series descriptions, unit descriptions, and table descriptions.\n1. Data Records: Contain category values that correlate to the data contained in value fields.\n\nRecords contain two sub collections (arrays):\n\n1. Category Cells: These cells contain the category for the record (year, region, ect.).\n1. Value Cells: These cells contain values for the record.",
             "extends": "DataCollection",
             "is_constructor": 1
@@ -229,7 +233,7 @@
             "module": "jQuery.autoChart",
             "namespace": "",
             "file": "js\\jquery.autochart.js",
-            "line": 1015,
+            "line": 1020,
             "description": "A collection that proxies a sparse array or array like object. This allows for a table\nto skip physical rows and columns when creating fields and records, maintaning both a\nrelative index for the record among the records/fields in the table, as well as an\nabsolute index that represents the physical index of the Row or Column in the table.",
             "extends": "DynamicClass",
             "is_constructor": 1
@@ -245,14 +249,46 @@
             "module": "jQuery.autoChart",
             "namespace": "",
             "file": "js\\jquery.autochart.js",
-            "line": 1151,
-            "description": "The data counterpart to LayoutTable.  While the former is a collection of Rows and Columns, this is\na collection of Fields and Records."
+            "line": 1156,
+            "description": "The data counterpart to LayoutTable.  While the former is a collection of Rows and Columns, this is\na collection of Fields and Records.",
+            "is_constructor": 1
+        },
+        "MultiDataTable": {
+            "name": "MultiDataTable",
+            "shortname": "MultiDataTable",
+            "classitems": [],
+            "plugins": [],
+            "extensions": [],
+            "plugin_for": [],
+            "extension_for": [],
+            "module": "jQuery.autoChart",
+            "namespace": "",
+            "file": "js\\jquery.autochart.js",
+            "line": 1510,
+            "description": "Proxies a collection of DataTable instances for a single physical table.\nIts constructor takes an array of options, as opposed to a single options\nobject, as well as a constructor function to use to generate DataTable\ninstances from the options array.",
+            "is_constructor": 1
+        },
+        "InteractiveChartableTable": {
+            "name": "InteractiveChartableTable",
+            "shortname": "InteractiveChartableTable",
+            "classitems": [],
+            "plugins": [],
+            "extensions": [],
+            "plugin_for": [],
+            "extension_for": [],
+            "module": "jQuery.autoChart",
+            "namespace": "",
+            "file": "js\\jquery.autochart.js",
+            "line": 1724,
+            "description": "An extension of the MultiDataTable class.  Utilizes the ChartableTable class to\ncreate a set of interactive chartable tables using checkboxes and buttons.",
+            "extends": "MultiDataTable",
+            "is_constructor": 1
         }
     },
     "classitems": [
         {
             "file": "js\\jquery.autochart.js",
-            "line": 249,
+            "line": 254,
             "description": "Constructor Function DynamicClass",
             "itemtype": "method",
             "name": "init",
@@ -268,7 +304,7 @@
         },
         {
             "file": "js\\jquery.autochart.js",
-            "line": 257,
+            "line": 262,
             "description": "Applies properties from a value object to the class instance.",
             "itemtype": "method",
             "name": "applyProperties",
@@ -293,7 +329,7 @@
         },
         {
             "file": "js\\jquery.autochart.js",
-            "line": 293,
+            "line": 298,
             "description": "Constructor Function TableElement",
             "itemtype": "method",
             "name": "init",
@@ -309,7 +345,7 @@
         },
         {
             "file": "js\\jquery.autochart.js",
-            "line": 302,
+            "line": 307,
             "description": "The jQuery wrapper for a unique table dom element",
             "itemtype": "property",
             "name": "element",
@@ -320,7 +356,7 @@
         },
         {
             "file": "js\\jquery.autochart.js",
-            "line": 312,
+            "line": 317,
             "description": "Checks to see if this TableElement instance wraps the same element as the\npassed TableElement.",
             "itemtype": "method",
             "name": "equals",
@@ -340,7 +376,7 @@
         },
         {
             "file": "js\\jquery.autochart.js",
-            "line": 326,
+            "line": 331,
             "description": "Hides the wrapped element.",
             "itemtype": "method",
             "name": "hide",
@@ -353,7 +389,7 @@
         },
         {
             "file": "js\\jquery.autochart.js",
-            "line": 336,
+            "line": 341,
             "description": "Shows the wrapped element.",
             "itemtype": "method",
             "name": "show",
@@ -366,7 +402,7 @@
         },
         {
             "file": "js\\jquery.autochart.js",
-            "line": 346,
+            "line": 351,
             "description": "Checks to see if the wrapped element is visible.",
             "itemtype": "method",
             "name": "isVisible",
@@ -379,7 +415,7 @@
         },
         {
             "file": "js\\jquery.autochart.js",
-            "line": 358,
+            "line": 363,
             "description": "Checks to see if the wrapped element is attached to the dom.",
             "itemtype": "method",
             "name": "isAttached",
@@ -392,7 +428,7 @@
         },
         {
             "file": "js\\jquery.autochart.js",
-            "line": 377,
+            "line": 382,
             "description": "Constructor Function Cell",
             "itemtype": "method",
             "name": "init",
@@ -408,7 +444,7 @@
         },
         {
             "file": "js\\jquery.autochart.js",
-            "line": 386,
+            "line": 391,
             "description": "The wrapped cell's original colspan.",
             "itemtype": "property",
             "name": "originalColspan",
@@ -419,7 +455,7 @@
         },
         {
             "file": "js\\jquery.autochart.js",
-            "line": 394,
+            "line": 399,
             "description": "The wrapped cell's original rowspan.",
             "itemtype": "property",
             "name": "originalRowspan",
@@ -430,7 +466,7 @@
         },
         {
             "file": "js\\jquery.autochart.js",
-            "line": 403,
+            "line": 408,
             "description": "Returns the value of the cell.  This value is derived from the\nhtml value, with trailing and leading whitspace, as well as\ntags and html entities removed.",
             "itemtype": "method",
             "name": "getValue",
@@ -443,7 +479,7 @@
         },
         {
             "file": "js\\jquery.autochart.js",
-            "line": 423,
+            "line": 428,
             "description": "Sets the HTML Value of the table cell.",
             "itemtype": "method",
             "name": "setValue",
@@ -456,7 +492,7 @@
         },
         {
             "file": "js\\jquery.autochart.js",
-            "line": 432,
+            "line": 437,
             "description": "Returns the current colspan of the table cell element",
             "itemtype": "method",
             "name": "getColspan",
@@ -469,7 +505,7 @@
         },
         {
             "file": "js\\jquery.autochart.js",
-            "line": 441,
+            "line": 446,
             "description": "Returns the current rowspan of the table cell element",
             "itemtype": "method",
             "name": "getRowspan",
@@ -482,7 +518,7 @@
         },
         {
             "file": "js\\jquery.autochart.js",
-            "line": 450,
+            "line": 455,
             "description": "Sets the colspan of the table cell element",
             "itemtype": "method",
             "name": "setColspan",
@@ -495,7 +531,7 @@
         },
         {
             "file": "js\\jquery.autochart.js",
-            "line": 460,
+            "line": 465,
             "description": "Sets the rowspan of the table cell element",
             "itemtype": "method",
             "name": "setRowspan",
@@ -508,7 +544,7 @@
         },
         {
             "file": "js\\jquery.autochart.js",
-            "line": 470,
+            "line": 475,
             "description": "Deincrements the colspan of the element.  If the\ndeincremented colspan is zero, then the element is\nhidden.",
             "itemtype": "method",
             "name": "deincrementColspan",
@@ -521,7 +557,7 @@
         },
         {
             "file": "js\\jquery.autochart.js",
-            "line": 485,
+            "line": 490,
             "description": "Deincrements the rowspan of the element.  If the\ndeincremented rowspan is zero, then the element is\nhidden.",
             "itemtype": "method",
             "name": "deincrementRowspan",
@@ -534,7 +570,7 @@
         },
         {
             "file": "js\\jquery.autochart.js",
-            "line": 500,
+            "line": 505,
             "description": "Increments the colspan of the element.  If the\ncurrent colspan is zero, then the element is\nshown.",
             "itemtype": "method",
             "name": "incrementColspan",
@@ -547,7 +583,7 @@
         },
         {
             "file": "js\\jquery.autochart.js",
-            "line": 515,
+            "line": 520,
             "description": "Increments the rowspan of the element.  If the\ncurrent rowspan is zero, then the element is\nshown.",
             "itemtype": "method",
             "name": "incrementRowspan",
@@ -560,7 +596,7 @@
         },
         {
             "file": "js\\jquery.autochart.js",
-            "line": 541,
+            "line": 546,
             "description": "Constructor Function CellCollection",
             "itemtype": "method",
             "name": "init",
@@ -576,7 +612,7 @@
         },
         {
             "file": "js\\jquery.autochart.js",
-            "line": 551,
+            "line": 556,
             "description": "An array of Cell objects proxied by this collection.",
             "itemtype": "property",
             "name": "cells",
@@ -587,7 +623,7 @@
         },
         {
             "file": "js\\jquery.autochart.js",
-            "line": 565,
+            "line": 570,
             "description": "Adds a Cell element to the cell collection.",
             "itemtype": "method",
             "name": "addCell",
@@ -612,7 +648,7 @@
         },
         {
             "file": "js\\jquery.autochart.js",
-            "line": 579,
+            "line": 584,
             "description": "Returns an array of unique cells from a given set of indices.",
             "itemtype": "method",
             "name": "getUniqueCells",
@@ -632,7 +668,7 @@
         },
         {
             "file": "js\\jquery.autochart.js",
-            "line": 599,
+            "line": 604,
             "description": "Returns an array of values from a given set of indices.",
             "itemtype": "method",
             "name": "getCellValues",
@@ -652,7 +688,7 @@
         },
         {
             "file": "js\\jquery.autochart.js",
-            "line": 613,
+            "line": 618,
             "description": "Overridden method",
             "itemtype": "method",
             "name": "isVisible",
@@ -665,7 +701,7 @@
         },
         {
             "file": "js\\jquery.autochart.js",
-            "line": 636,
+            "line": 641,
             "description": "Overridden method.",
             "itemtype": "method",
             "name": "hide",
@@ -678,7 +714,7 @@
         },
         {
             "file": "js\\jquery.autochart.js",
-            "line": 650,
+            "line": 655,
             "description": "Overridden method.",
             "itemtype": "method",
             "name": "show",
@@ -691,7 +727,7 @@
         },
         {
             "file": "js\\jquery.autochart.js",
-            "line": 672,
+            "line": 677,
             "description": "Overridden method.",
             "itemtype": "method",
             "name": "hide",
@@ -704,7 +740,7 @@
         },
         {
             "file": "js\\jquery.autochart.js",
-            "line": 683,
+            "line": 688,
             "description": "Overridden method.",
             "itemtype": "method",
             "name": "show",
@@ -717,7 +753,7 @@
         },
         {
             "file": "js\\jquery.autochart.js",
-            "line": 705,
+            "line": 710,
             "description": "Parses and HTML table into columns and rows.",
             "access": "private",
             "tagname": "",
@@ -735,7 +771,7 @@
         },
         {
             "file": "js\\jquery.autochart.js",
-            "line": 780,
+            "line": 785,
             "description": "LayoutTable Constructor Function",
             "itemtype": "method",
             "name": "init",
@@ -751,7 +787,7 @@
         },
         {
             "file": "js\\jquery.autochart.js",
-            "line": 796,
+            "line": 801,
             "description": "An array of Row collections",
             "itemtype": "property",
             "name": "rows",
@@ -761,7 +797,7 @@
         },
         {
             "file": "js\\jquery.autochart.js",
-            "line": 803,
+            "line": 808,
             "description": "An array of Column collections",
             "itemtype": "property",
             "name": "columns",
@@ -771,7 +807,7 @@
         },
         {
             "file": "js\\jquery.autochart.js",
-            "line": 812,
+            "line": 817,
             "description": "Adds a set of cells at the specified index as a column in the table",
             "itemtype": "method",
             "name": "addColumn",
@@ -796,7 +832,7 @@
         },
         {
             "file": "js\\jquery.autochart.js",
-            "line": 828,
+            "line": 833,
             "description": "Adds a set of cells at the specified index as a row in the table",
             "itemtype": "method",
             "name": "addRow",
@@ -821,7 +857,7 @@
         },
         {
             "file": "js\\jquery.autochart.js",
-            "line": 859,
+            "line": 864,
             "description": "DataCollection Constructor Function",
             "itemtype": "method",
             "name": "init",
@@ -837,7 +873,7 @@
         },
         {
             "file": "js\\jquery.autochart.js",
-            "line": 868,
+            "line": 873,
             "description": "The cell collection (Row, Column) that this data collection proxies",
             "itemtype": "property",
             "name": "cellCollection",
@@ -848,7 +884,7 @@
         },
         {
             "file": "js\\jquery.autochart.js",
-            "line": 896,
+            "line": 901,
             "description": "Field Class Constructor",
             "itemtype": "method",
             "name": "init",
@@ -864,7 +900,7 @@
         },
         {
             "file": "js\\jquery.autochart.js",
-            "line": 905,
+            "line": 910,
             "description": "Specifies whether or not this is a value field.",
             "itemtype": "property",
             "name": "isValue",
@@ -875,7 +911,7 @@
         },
         {
             "file": "js\\jquery.autochart.js",
-            "line": 913,
+            "line": 918,
             "description": "Specifies whether or not this is a category field.",
             "itemtype": "property",
             "name": "isCategory",
@@ -886,7 +922,7 @@
         },
         {
             "file": "js\\jquery.autochart.js",
-            "line": 921,
+            "line": 926,
             "description": "If this isValue then the units for the field",
             "itemtype": "property",
             "name": "units",
@@ -897,7 +933,7 @@
         },
         {
             "file": "js\\jquery.autochart.js",
-            "line": 929,
+            "line": 934,
             "description": "An array of cells that are the header cells for this\nfield.",
             "itemtype": "property",
             "name": "headerCells",
@@ -908,7 +944,7 @@
         },
         {
             "file": "js\\jquery.autochart.js",
-            "line": 938,
+            "line": 943,
             "description": "An array of cells that are the data cells for this\nfield.",
             "itemtype": "property",
             "name": "dataCells",
@@ -919,7 +955,7 @@
         },
         {
             "file": "js\\jquery.autochart.js",
-            "line": 971,
+            "line": 976,
             "description": "Specifies whether or not this is a header record",
             "itemtype": "property",
             "name": "isHeader",
@@ -930,7 +966,7 @@
         },
         {
             "file": "js\\jquery.autochart.js",
-            "line": 979,
+            "line": 984,
             "description": "Specifies whether or not this is a data record",
             "itemtype": "property",
             "name": "isData",
@@ -941,7 +977,7 @@
         },
         {
             "file": "js\\jquery.autochart.js",
-            "line": 987,
+            "line": 992,
             "description": "An array of cells that are the category cells for the record",
             "itemtype": "property",
             "name": "categoryCells",
@@ -952,7 +988,7 @@
         },
         {
             "file": "js\\jquery.autochart.js",
-            "line": 995,
+            "line": 1000,
             "description": "An array of cells that are the value cells for the record.",
             "itemtype": "property",
             "name": "valueCells",
@@ -963,7 +999,7 @@
         },
         {
             "file": "js\\jquery.autochart.js",
-            "line": 1003,
+            "line": 1008,
             "description": "A hash (object) of <field index, value> for the value cells",
             "itemtype": "property",
             "name": "values",
@@ -974,7 +1010,7 @@
         },
         {
             "file": "js\\jquery.autochart.js",
-            "line": 1026,
+            "line": 1031,
             "description": "SparseDataCollection Constructor Function",
             "itemtype": "method",
             "name": "init",
@@ -990,7 +1026,7 @@
         },
         {
             "file": "js\\jquery.autochart.js",
-            "line": 1035,
+            "line": 1040,
             "description": "The array or array like object proxied by the collection.",
             "itemtype": "property",
             "name": "values",
@@ -1001,7 +1037,7 @@
         },
         {
             "file": "js\\jquery.autochart.js",
-            "line": 1043,
+            "line": 1048,
             "description": "Specifies how the keys in the collection should be ordered. Possible values\nare 'ascending' or 'descending'.",
             "itemtype": "property",
             "name": "orderBy",
@@ -1013,7 +1049,7 @@
         },
         {
             "file": "js\\jquery.autochart.js",
-            "line": 1056,
+            "line": 1061,
             "description": "Sorts the keys based on the value of the instances orderBy property.",
             "itemtype": "method",
             "name": "createSortedKeys",
@@ -1026,7 +1062,7 @@
         },
         {
             "file": "js\\jquery.autochart.js",
-            "line": 1087,
+            "line": 1092,
             "description": "Accessor method, returns the value stored at a specified index",
             "itemtype": "method",
             "name": "get",
@@ -1046,7 +1082,7 @@
         },
         {
             "file": "js\\jquery.autochart.js",
-            "line": 1097,
+            "line": 1102,
             "description": "Iteration method. Similar to jQuery's $.each method.  Iterates\nover collection, calling the callback for each value.  The callback\nis executed in the context of the item, and is passed the sorted index\nin the collection, as well as the absolute index of the item (or the key).",
             "itemtype": "method",
             "name": "each",
@@ -1066,7 +1102,7 @@
         },
         {
             "file": "js\\jquery.autochart.js",
-            "line": 1116,
+            "line": 1121,
             "description": "Iteration method. Similar to jQuery's $.map method.  Iterates\nover collection, calling the callback for each value.  The callback\nis executed in the context of the item, and is passed the sorted index\nin the collection, as well as the absolute index of the item (or the key). The callback\ncan return a value, which is mapped into a new array returned by the map function.  If the\ncallback returns null, then no item is added to the array.",
             "itemtype": "method",
             "name": "map",
@@ -1086,7 +1122,7 @@
         },
         {
             "file": "js\\jquery.autochart.js",
-            "line": 1140,
+            "line": 1145,
             "description": "Returns the number of keys contained in the collection.",
             "itemtype": "method",
             "name": "getLength",
@@ -1099,7 +1135,7 @@
         },
         {
             "file": "js\\jquery.autochart.js",
-            "line": 1159,
+            "line": 1165,
             "description": "Parses the units or the title from a regex, record index, or string.",
             "itemtype": "method",
             "name": "parseUnitsOrTitle",
@@ -1121,7 +1157,7 @@
         },
         {
             "file": "js\\jquery.autochart.js",
-            "line": 1192,
+            "line": 1198,
             "description": "Parses the title, wraps parseUnitsOrTitle.  If a caption exists for\nthe table, this is used in lieu of the passed options.",
             "itemtype": "method",
             "name": "parseTitle",
@@ -1143,7 +1179,7 @@
         },
         {
             "file": "js\\jquery.autochart.js",
-            "line": 1215,
+            "line": 1221,
             "description": "Parses the units, wraps parseUnitsOrTitle.",
             "itemtype": "method",
             "name": "parseUnits",
@@ -1165,7 +1201,7 @@
         },
         {
             "file": "js\\jquery.autochart.js",
-            "line": 1230,
+            "line": 1236,
             "description": "Parses the fields in the table based on the passed options.  Fields are\ndivided into three SparseDataCollections, one for category fields, one\nfor value fields, and one for all fields.",
             "itemtype": "method",
             "name": "parseFields",
@@ -1187,7 +1223,7 @@
         },
         {
             "file": "js\\jquery.autochart.js",
-            "line": 1271,
+            "line": 1277,
             "description": "A collection of all Fields parsed from the table.",
             "itemtype": "property",
             "name": "fields",
@@ -1198,7 +1234,7 @@
         },
         {
             "file": "js\\jquery.autochart.js",
-            "line": 1282,
+            "line": 1288,
             "description": "A collection of all category Fields parsed from the table.",
             "itemtype": "property",
             "name": "categoryFields",
@@ -1209,7 +1245,7 @@
         },
         {
             "file": "js\\jquery.autochart.js",
-            "line": 1293,
+            "line": 1299,
             "description": "A collection of all value parsed from the table.",
             "itemtype": "property",
             "name": "valueFields",
@@ -1220,7 +1256,7 @@
         },
         {
             "file": "js\\jquery.autochart.js",
-            "line": 1305,
+            "line": 1311,
             "description": "Parses the records in the table based on the passed options.  Records are\ndivided into three SparseDataCollections, one for header records, one for \ndata records, and one for all records.",
             "itemtype": "method",
             "name": "parseRecords",
@@ -1242,7 +1278,7 @@
         },
         {
             "file": "js\\jquery.autochart.js",
-            "line": 1352,
+            "line": 1358,
             "description": "A collection of all Records parsed from the table.",
             "itemtype": "property",
             "name": "records",
@@ -1253,7 +1289,7 @@
         },
         {
             "file": "js\\jquery.autochart.js",
-            "line": 1363,
+            "line": 1369,
             "description": "A collection of all header Records parsed from the table.",
             "itemtype": "property",
             "name": "headerRecords",
@@ -1264,7 +1300,7 @@
         },
         {
             "file": "js\\jquery.autochart.js",
-            "line": 1374,
+            "line": 1380,
             "description": "A collection of all data Records parsed from the table.",
             "itemtype": "property",
             "name": "dataRecords",
@@ -1275,7 +1311,7 @@
         },
         {
             "file": "js\\jquery.autochart.js",
-            "line": 1388,
+            "line": 1394,
             "description": "LayoutTable Constructor Function",
             "itemtype": "method",
             "name": "init",
@@ -1296,7 +1332,7 @@
         },
         {
             "file": "js\\jquery.autochart.js",
-            "line": 1399,
+            "line": 1405,
             "description": "The options object passed to the constructor function.",
             "itemtype": "property",
             "name": "options",
@@ -1307,7 +1343,7 @@
         },
         {
             "file": "js\\jquery.autochart.js",
-            "line": 1408,
+            "line": 1414,
             "description": "The layout type of this datatable as defined in the options\nobject.",
             "itemtype": "property",
             "name": "layout",
@@ -1318,7 +1354,7 @@
         },
         {
             "file": "js\\jquery.autochart.js",
-            "line": 1417,
+            "line": 1423,
             "description": "The LayoutTable that proxies the physical table for this data table.",
             "itemtype": "property",
             "name": "layoutTable",
@@ -1329,7 +1365,7 @@
         },
         {
             "file": "js\\jquery.autochart.js",
-            "line": 1425,
+            "line": 1431,
             "description": "The CellCollection that contains the field information for this table.\nIf the layout is 'vertical', then the fieldCollection will be the\ncolumns from the layoutTable.  If the layout 'horizontal', then the\nfieldCollection will be the rows from the layoutTable.",
             "itemtype": "property",
             "name": "fieldCollection",
@@ -1340,13 +1376,114 @@
         },
         {
             "file": "js\\jquery.autochart.js",
-            "line": 1437,
+            "line": 1443,
             "description": "The CellCollection that contains the record information for this table.\nIf the layout is 'vertical', then the recordCollection will be the\nrows from the layoutTable.  If the layout 'horizontal', then the\nrecordCollection will be the columns from the layoutTable.",
             "itemtype": "property",
             "name": "recordCollection",
             "type": "{CellCollection}",
             "readonly": "",
             "class": "DataTable",
+            "module": "jQuery.autoChart"
+        },
+        {
+            "file": "js\\jquery.autochart.js",
+            "line": 1456,
+            "description": "The parsed indices for the header records in the layoutTable.  These\nare parsed indices, so any string options will be converted to a set\nof integers.",
+            "itemtype": "property",
+            "name": "headerIndices",
+            "type": "{array}",
+            "readonly": "",
+            "class": "DataTable",
+            "module": "jQuery.autoChart"
+        },
+        {
+            "file": "js\\jquery.autochart.js",
+            "line": 1467,
+            "description": "The parsed indices for the data records in the layoutTable.  These\nare parsed indices, so any string options will be converted to a set\nof integers.",
+            "itemtype": "property",
+            "name": "dataIndices",
+            "type": "{array}",
+            "readonly": "",
+            "class": "DataTable",
+            "module": "jQuery.autoChart"
+        },
+        {
+            "file": "js\\jquery.autochart.js",
+            "line": 1479,
+            "description": "The parsed indices for the value fields in the layoutTable.  These\nare parsed indices, so any string options will be converted to a set\nof integers.",
+            "itemtype": "property",
+            "name": "valueIndices",
+            "type": "{array}",
+            "readonly": "",
+            "class": "DataTable",
+            "module": "jQuery.autoChart"
+        },
+        {
+            "file": "js\\jquery.autochart.js",
+            "line": 1490,
+            "description": "The parsed indices for the category fields in the layoutTable.  These\nare parsed indices, so any string options will be converted to a set\nof integers.",
+            "itemtype": "property",
+            "name": "categoryIndices",
+            "type": "{array}",
+            "readonly": "",
+            "class": "DataTable",
+            "module": "jQuery.autoChart"
+        },
+        {
+            "file": "js\\jquery.autochart.js",
+            "line": 1520,
+            "description": "MultiDataTable Constructor Function",
+            "itemtype": "method",
+            "name": "init",
+            "params": [
+                {
+                    "name": "tableEle",
+                    "description": "The physical table to be proxied",
+                    "type": "JQuery"
+                },
+                {
+                    "name": "options",
+                    "description": "An array of options objects from which to\ngenerate the collection of datatables.  See jQuery.autoChart module\nfor documentation of the options structure and default values.",
+                    "type": "Array"
+                },
+                {
+                    "name": "dataTableClass",
+                    "description": "A constructor function to use to\ngenerate the individual DataTable instances proxied by this collection.",
+                    "type": "Function"
+                }
+            ],
+            "class": "MultiDataTable",
+            "module": "jQuery.autoChart"
+        },
+        {
+            "file": "js\\jquery.autochart.js",
+            "line": 1733,
+            "description": "InteractiveChartableTable Constructor Function",
+            "itemtype": "method",
+            "name": "init",
+            "params": [
+                {
+                    "name": "tableEle",
+                    "description": "The physical table to be proxied",
+                    "type": "JQuery"
+                },
+                {
+                    "name": "options",
+                    "description": "An array of options objects from which to\ngenerate the collection of datatables.  See jQuery.autoChart module\nfor documentation of the options structure and default values.",
+                    "type": "Array"
+                },
+                {
+                    "name": "onCharted",
+                    "description": "A callback to be invoked when a charting\nbutton is clicked.  The function should take an array of selectedfield\nindices as an argument.",
+                    "type": "Function"
+                },
+                {
+                    "name": "onSeriesSelected",
+                    "description": "A callback to be invoked when a\nseries is selected for charting in multi-chartable tables.  The function\nshould take an array of selected field indices as an argument.  Returning\nfalse from the callback disables all unchecked checkboxes.  Returning true\nform the callback enables all disabled checkboxes, and returning an array\nof indices disables all checkboxes at the associated field indices.",
+                    "type": "Function"
+                }
+            ],
+            "class": "InteractiveChartableTable",
             "module": "jQuery.autoChart"
         }
     ]

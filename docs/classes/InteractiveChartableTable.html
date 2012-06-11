@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>DynamicClass - The jQuery.autoChart API</title>
+    <title>InteractiveChartableTable - The jQuery.autoChart API</title>
     <link rel="stylesheet" href="http:&#x2F;&#x2F;yui.yahooapis.com&#x2F;3.5.1&#x2F;build&#x2F;cssgrids&#x2F;cssgrids-min.css">
     <link rel="stylesheet" href="..&#x2F;assets/vendor/prettify/prettify-min.css">
     <link rel="stylesheet" href="..&#x2F;assets/css/main.css" id="site_styles">
@@ -110,15 +110,19 @@
             <div class="apidocs">
                 <div id="docs-main">
                     <div class="content">
-                        <h1>DynamicClass Class</h1>
+                        <h1>InteractiveChartableTable Class</h1>
 <div class="box meta">
     
 
     
+        <div class="extends">
+            Extends <a href="..\classes\MultiDataTable.html" class="crosslink">MultiDataTable</a>
+        </div>
+    
 
     
         <div class="foundat">
-            Defined in: <a href="..&#x2F;files&#x2F;js_jquery.autochart.js.html#l241"><code>js\jquery.autochart.js:241</code></a>
+            Defined in: <a href="..&#x2F;files&#x2F;js_jquery.autochart.js.html#l1724"><code>js\jquery.autochart.js:1724</code></a>
         </div>
     
 
@@ -134,19 +138,15 @@
 
 
 <div class="box intro">
-    <p>Base class for most classes in the module.  It allows
-for classes that take an object as a constructor argument, and
-apply a set of the properties from the object to the class instance.
-If the properties are not found on the object, then the instance
-will pass hasOwnProperty for the missing properties, with undefined
-values.</p>
+    <p>An extension of the MultiDataTable class.  Utilizes the ChartableTable class to
+create a set of interactive chartable tables using checkboxes and buttons.</p>
 </div>
 
 
     <div class="constructor">
         <h2>Constructor</h2>
-        <div id="method_DynamicClass" class="method item">
-    <h3 class="name"><code>DynamicClass</code></h3>
+        <div id="method_InteractiveChartableTable" class="method item">
+    <h3 class="name"><code>InteractiveChartableTable</code></h3>
 
     
         <span class="paren">()</span>
@@ -177,7 +177,7 @@ values.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;js_jquery.autochart.js.html#l241"><code>js\jquery.autochart.js:241</code></a>
+        <a href="..&#x2F;files&#x2F;js_jquery.autochart.js.html#l1724"><code>js\jquery.autochart.js:1724</code></a>
         
         </p>
 
@@ -221,16 +221,9 @@ values.</p>
                 <div class="index-section methods">
                     <h3>Methods</h3>
 
-                    <ul class="index-list methods">
+                    <ul class="index-list methods extends">
                         
-                            <li class="index-item method">
-                                <a href="#method_applyProperties">applyProperties</a>
-
-                                
-                                
-                            </li>
-                        
-                            <li class="index-item method">
+                            <li class="index-item method inherited">
                                 <a href="#method_init">init</a>
 
                                 
@@ -253,130 +246,6 @@ values.</p>
                 <h2 class="off-left">Methods</h2>
 
                 
-                    <div id="method_applyProperties" class="method item">
-    <h3 class="name"><code>applyProperties</code></h3>
-
-    
-        <div class="args">
-            <span class="paren">(</span><ul class="args-list inline commas">
-            
-                <li class="arg">
-                    
-                        <code>props</code>
-                    
-                </li>
-            
-                <li class="arg">
-                    
-                        <code>values</code>
-                    
-                </li>
-            
-            </ul><span class="paren">)</span>
-        </div>
-    
-
-    
-        <span class="returns-inline">
-            <span class="type">Void</span>
-        </span>
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    <div class="meta">
-        
-            
-                
-                <p>
-                
-                Defined in
-                
-            
-        
-        
-        <a href="..&#x2F;files&#x2F;js_jquery.autochart.js.html#l262"><code>js\jquery.autochart.js:262</code></a>
-        
-        </p>
-
-
-        
-
-        
-    </div>
-
-    <div class="description">
-        <p>Applies properties from a value object to the class instance.</p>
-    </div>
-
-    
-        <div class="params">
-            <h4>Parameters:</h4>
-
-            <ul class="params-list">
-            
-                <li class="param">
-                    
-                        <code class="param-name">props</code>
-                        <span class="type">Array</span>
-                    
-
-                    
-
-                    <div class="param-description">
-                        <p>An array of strings representing keys on the value object.</p>
-                    </div>
-
-                    
-                </li>
-            
-                <li class="param">
-                    
-                        <code class="param-name">values</code>
-                        <span class="type">Object</span>
-                    
-
-                    
-
-                    <div class="param-description">
-                        <p>An object containing values to be applied to the class instance.</p>
-                    </div>
-
-                    
-                </li>
-            
-            </ul>
-        </div>
-    
-
-    
-        <div class="returns">
-            <h4>Returns:</h4>
-
-            <div class="returns-description">
-                
-                    
-                        <span class="type">Void</span>:
-                    
-                
-            </div>
-        </div>
-    
-
-    
-</div>
-
-                
                     <div id="method_init" class="method item">
     <h3 class="name"><code>init</code></h3>
 
@@ -386,7 +255,25 @@ values.</p>
             
                 <li class="arg">
                     
-                        <code>values</code>
+                        <code>tableEle</code>
+                    
+                </li>
+            
+                <li class="arg">
+                    
+                        <code>options</code>
+                    
+                </li>
+            
+                <li class="arg">
+                    
+                        <code>onCharted</code>
+                    
+                </li>
+            
+                <li class="arg">
+                    
+                        <code>onSeriesSelected</code>
                     
                 </li>
             
@@ -410,16 +297,16 @@ values.</p>
 
     <div class="meta">
         
+            <p>Inherited from
+            <a href="..\classes\MultiDataTable.html#method_init">
+                MultiDataTable
+            </a>
             
-                
-                <p>
-                
-                Defined in
-                
+            but overwritten in
             
         
         
-        <a href="..&#x2F;files&#x2F;js_jquery.autochart.js.html#l254"><code>js\jquery.autochart.js:254</code></a>
+        <a href="..&#x2F;files&#x2F;js_jquery.autochart.js.html#l1733"><code>js\jquery.autochart.js:1733</code></a>
         
         </p>
 
@@ -430,7 +317,7 @@ values.</p>
     </div>
 
     <div class="description">
-        <p>Constructor Function DynamicClass</p>
+        <p>InteractiveChartableTable Constructor Function</p>
     </div>
 
     
@@ -441,14 +328,68 @@ values.</p>
             
                 <li class="param">
                     
-                        <code class="param-name">values</code>
-                        <span class="type">Object</span>
+                        <code class="param-name">tableEle</code>
+                        <span class="type">JQuery</span>
                     
 
                     
 
                     <div class="param-description">
-                        <p>An object containing properties to be applied to the class.</p>
+                        <p>The physical table to be proxied</p>
+                    </div>
+
+                    
+                </li>
+            
+                <li class="param">
+                    
+                        <code class="param-name">options</code>
+                        <span class="type">Array</span>
+                    
+
+                    
+
+                    <div class="param-description">
+                        <p>An array of options objects from which to
+generate the collection of datatables.  See jQuery.autoChart module
+for documentation of the options structure and default values.</p>
+                    </div>
+
+                    
+                </li>
+            
+                <li class="param">
+                    
+                        <code class="param-name">onCharted</code>
+                        <span class="type">Function</span>
+                    
+
+                    
+
+                    <div class="param-description">
+                        <p>A callback to be invoked when a charting
+button is clicked.  The function should take an array of selectedfield
+indices as an argument.</p>
+                    </div>
+
+                    
+                </li>
+            
+                <li class="param">
+                    
+                        <code class="param-name">onSeriesSelected</code>
+                        <span class="type">Function</span>
+                    
+
+                    
+
+                    <div class="param-description">
+                        <p>A callback to be invoked when a
+series is selected for charting in multi-chartable tables.  The function
+should take an array of selected field indices as an argument.  Returning
+false from the callback disables all unchecked checkboxes.  Returning true
+form the callback enables all disabled checkboxes, and returning an array
+of indices disables all checkboxes at the associated field indices.</p>
                     </div>
 
                     
