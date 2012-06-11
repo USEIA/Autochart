@@ -1,3 +1,88 @@
+/**
+ *	The jQuery.autoChart plugin scrapes html tables, and exposes the data
+ *	for charting.  The plugin can also add a set of controls to the table
+ *	to allow for series selection, and charting using Highcharts in a
+ *	fancybox modal window.
+ *
+ *		defaultOptions = {
+ *
+ *			//	Specifies the layout of the table.  A horizontal table has its
+ *			//	records as columns, and it's fields as rows. A vertical table
+ *			//	has its records as rows, and fields as columns.
+ *
+ *			layout : 'horizontal',
+ *
+ *			//	Specify either a text value, or a column/row address for the
+ *			//	Title.  Optionally, a regular expression and a match index
+ *			//	can be provided to extract a portion of the text in a cell.
+ *			//	
+ *			//	title : {
+ *			//		text : (String or undefined)
+ *			//		row : (Number or undefined)
+ *			//		column : (Number or undefined)
+ *			//		regex : {
+ *			//			pattern : (String or RegEx)
+ *			//			match : (Number)
+ *			//		}
+ *			//	}
+ *			
+ *			title : void 0,
+ *		
+ *			//	Same as title but for the chart units.  Additionally for the
+ *			//	units, if only a row or column is provided, it is assumed
+ *			//	that the record contains multiple units that are associated
+ *			//	with various fields.  This allows for multiple units to be
+ *			//	contained in the same table.
+ *			//	
+ *			//	units : {
+ *			//		text : (String or undefined)
+ *			//		row : (Number or undefined)
+ *			//		column (Number or undefined)
+ *			//		regex : {
+ *			//			pattern : (String or RegEx)
+ *			//			match : (Number)
+ *			//		}
+ *			//	}
+ *	
+ *			units : void 0,
+ *		
+ *			//	Format is {Number} for a specific record, {Number}-{Number}
+ *			//	for a range, and {Number}+ for all records after and including a
+ *			//	specific record.
+ *			
+ *			header : void 0,
+ *			
+ *			//	Same as header but for the data (data) records.
+ *			
+ *			data : void 0,
+ *			
+ *			//	Same as header but for the footer rows (footers are always rows).
+ *			
+ *			footer : void 0,
+ *			
+ *			//	Same as header but for the category fields
+ *			
+ *			category : void 0,
+ *			
+ *			//	Same as header but for the value fields
+ *			
+ *			value : void 0,
+ *			
+ *			//	Specifies a record index to insert the charting controls,
+ *			//	defaults to the last header record
+ *			
+ *			controlsIndex : void 0,
+ *			
+ *			//	Specifies whether or not the table supports multi-charting,
+ *			//	defaults to true for multi-field and false for single-field
+ *			//	tables
+ *		
+ *			multiChart : void 0
+ *		};
+ *	
+ *	@module jQuery.autoChart
+ *	@requires jQuery, Highcharts, jQuery.fancybox
+ */
 (function($){
 	
 	///////////////////////////
@@ -5,78 +90,15 @@
 	///////////////////////////
 	
 	var defaultOptions = {
-		/*
-			Specifies the layout of the table.  A horizontal table has its
-			records as columns, and it's fields as rows. A vertical table
-			has its records as rows, and fields as columns.
-		*/
 		layout : 'horizontal',
-		/*
-			Specify either a text value, or a column/row address for the
-			Title.  Optionally, a regular expression and a match index
-			can be provided to extract a portion of the text in a cell.
-			
-			title : {
-				text : (String or undefined)
-				row : (Number or undefined)
-				column : (Number or undefined)
-				regex : {
-					pattern : (String or RegEx)
-					match : (Number)
-				}
-			}
-		*/
 		title : void 0,
-		/*
-			Same as title but for the chart units.  Additionally for the
-			units, if only a row or column is provided, it is assumed
-			that the record contains multiple units that are associated
-			with various fields.  This allows for multiple units to be
-			contained in the same table.
-			
-			units : {
-				text : (String or undefined)
-				row : (Number or undefined)
-				column (Number or undefined)
-				regex : {
-					pattern : (String or RegEx)
-					match : (Number)
-				}
-			}
-		*/
 		units : void 0,
-		/*
-			Format is {Number} for a specific record, {Number}-{Number}
-			for a range, and {Number}+ for all records after and including a
-			specific record.
-		*/
 		header : void 0,
-		/*
-			Same as header but for the data (data) records.
-		*/
 		data : void 0,
-		/*
-			Same as header but for the footer rows (footers are always rows).
-		*/
 		footer : void 0,
-		/*
-			Same as header but for the category fields
-		*/
 		category : void 0,
-		/*
-			Same as header but for the value fields
-		*/
 		value : void 0,
-		/*
-			Specifies a record index to insert the charting controls,
-			defaults to the last header record
-		*/
 		controlsIndex : void 0,
-		/*
-			Specifies whether or not the table supports multi-charting,
-			defaults to true for multi-field and false for single-field
-			tables
-		*/
 		multiChart : void 0
 	};
 	
@@ -163,11 +185,11 @@
 		};
 	}());
 	
-	function createClass(/*
-		(properties, $uper)
-		 or
-		(constructor, properties, $uper)
-		*/){
+	function createClass(
+		// (properties, $uper)
+		// or
+		// (constructor, properties, $uper)
+		){
 		var klass, klassProperties, superPrototype;
 		if(arguments.length == 3){
 			klass = arguments[0];
@@ -211,10 +233,34 @@
 	// Base Class //
 	////////////////
 	
+	/**
+	 *	Base class for most classes in the module.  It allows
+	 *	for classes that take an object as a constructor argument, and
+	 *	apply a set of the properties from the object to the class instance.
+	 *	If the properties are not found on the object, then the instance
+	 *	will pass hasOwnProperty for the missing properties, with undefined
+	 *	values.
+	 *	
+	 * 	@class DynamicClass
+	 *	@constructor 
+	 */
+	
 	var DynamicClass = createClass({
-		init : function(properties){
-			this.applyProperties([/*props go here*/], properties);
+		/**
+		 *	Constructor Function DynamicClass
+		 *	@method init
+		 *	@param values {object} An object containing properties to be applied to the class.
+		 */
+		init : function(values){
+			this.applyProperties([/*props go here*/], values);
 		},
+		/**
+		 *	Applies properties from a value object to the class instance.
+		 *	@method applyProperties
+		 *	@param props {array} An array of strings representing keys on the value object.
+		 *	@param values {object} An object containing values to be applied to the class instance.
+		 *	@return {void}
+		 */
 		applyProperties : function(props, values){
 			var i, prop;
 			if(values){
@@ -233,47 +279,137 @@
 	// Layout Classes //
 	////////////////////
 	
+	/**
+	 *	Base class for most all table elements (cell, row, column).  This class
+	 *	is a wrapper for a jQuery element, and provides some utility methods to
+	 *	interact with the underlying element.
+	 *	
+	 * 	@class TableElement
+	 *	@extends DynamicClass
+	 *	@constructor 
+	 */
+	
 	var TableElement = createClass({
-		init : function(properties){
-			this.$super(properties);
+		/**
+		 *	Constructor Function TableElement
+		 *	
+		 *	@method init
+		 *	@param values {object} An object containing properties to be applied to the class
+		 */
+		init : function(values){
+			this.$super(values);
 			this.applyProperties([
-				'element' // The jQuery wrapper for a unique table dom element
-			], properties);
+				/**
+				 * The jQuery wrapper for a unique table dom element
+				 * 
+				 * @property element
+				 * @type {jQuery}
+				 * @readOnly
+				 **/
+				'element'
+			], values);
 		},
+		/**
+		 *	Checks to see if this TableElement instance wraps the same element as the
+		 *	passed TableElement.
+		 *	
+		 *	@method equals
+		 *	@param other {TableElement} A TableElement to check equivilency against.
+		 *	@return {boolean}
+		 */
 		equals : function(other){
 			if(this.element && other.element)
 				return this.element.get(0) == other.element.get(0);
 			else
 				return false;
 		},
+		/**
+		 *	Hides the wrapped element.
+		 *	
+		 *	@method hide
+		 *	@return {void}
+		 */
 		hide : function(){
 			if(this.element)
 				this.element.hide();
 		},
+		/**
+		 *	Shows the wrapped element.
+		 *	
+		 *	@method show
+		 *	@return {void}
+		 */
 		show : function(){
 			if(this.element)
 				this.element.show();
 		},
+		/**
+		 *	Checks to see if the wrapped element is visible.
+		 *	
+		 *	@method isVisible
+		 *	@return {boolean}
+		 */
 		isVisible : function(){
 			if(this.element)
 				return this.element.is(':visible');
 			else
 				return false;
 		},
+		/**
+		 *	Checks to see if the wrapped element is attached to the dom.
+		 *	
+		 *	@method isAttached
+		 *	@return {boolean}
+		 */
 		isAttached : function(){
 			return this.element.parents().has('body').length > 0;
 		}
 	}, DynamicClass.prototype);
 	
+	/**
+	 *	Wrapper class for a table cell element.
+	 *	
+	 * 	@class Cell
+	 *	@extends TableElement
+	 *	@constructor 
+	 */
 	var Cell = createClass({
-		init : function(properties){
-			this.$super(properties);
+		/**
+		 *	Constructor Function Cell
+		 *	
+		 *	@method init
+		 *	@param values {object} An object containing properties to be applied to the class
+		 */
+		init : function(values){
+			this.$super(values);
 			if(!this['element']) this['element'] = $('<td></td>');
+			/**
+			 * 	The wrapped cell's original colspan.
+			 *
+			 *	@property originalColspan
+			 *	@type {integer}
+			 *	@readOnly
+			 **/
 			this['originalColspan'] = this.getColspan();
+			/**
+			 * 	The wrapped cell's original rowspan.
+			 *
+			 *	@property originalRowspan
+			 *	@type {integer}
+			 *	@readOnly
+			 **/
 			this['originalRowspan'] = this.getRowspan();
 		},
+		/**
+		 *	Returns the value of the cell.  This value is derived from the
+		 *	html value, with trailing and leading whitspace, as well as
+		 *	tags and html entities removed.
+		 *
+		 *	@method getValue
+		 *	@return {string}
+		 **/
 		getValue : function(){
-			return $.trim(this.getHTMLValue()
+			return $.trim(this.element.html()
 				// Strip Sub and Sup tags
 				.replace(/<sup>.*?<\/sup>/g, '')
 				.replace(/<sub>.*?<\/sub>/g, '')
@@ -284,29 +420,61 @@
 				// Strip all other tags
 				.replace(/<.*?>/g, ''));
 		},
+		/**
+		 *	Sets the HTML Value of the table cell.
+		 *
+		 *	@method setValue
+		 *	@return {void}
+		 **/
 		setValue : function(value){
-			this.element.text(value)
+			this.element.html(value)
 		},
-		getHTMLValue : function(){
-			return this.element.html();
-		},
-		setHTMLValue : function(value){
-			return this.element.html(value);
-		},
+		/**
+		 *	Returns the current colspan of the table cell element
+		 *
+		 *	@method getColspan
+		 *	@return {ingeger}
+		 **/
 		getColspan : function(){
 			return parseInt(this.element.attr('colspan')) || 1;
 		},
+		/**
+		 *	Returns the current rowspan of the table cell element
+		 *
+		 *	@method getRowspan
+		 *	@return {integer}
+		 **/
 		getRowspan : function(){
 			return parseInt(this.element.attr('rowspan')) || 1;
 		},
+		/**
+		 *	Sets the colspan of the table cell element
+		 *
+		 *	@method setColspan
+		 *	@return {void}
+		 **/
 		setColspan : function(val, updateOriginal){
 			this.element.attr('colspan', val);
 			if(updateOriginal) this['originalColspan'] = val;
 		},
+		/**
+		 *	Sets the rowspan of the table cell element
+		 *
+		 *	@method setRowspan
+		 *	@return {void}
+		 **/
 		setRowspan : function(val, updateOriginal){
 			this.element.attr('rowspan', val);
 			if(updateOriginal) this['originalRowspan'] = val;
 		},
+		/**
+		 *	Deincrements the colspan of the element.  If the
+		 *	deincremented colspan is zero, then the element is
+		 *	hidden.
+		 *
+		 *	@method deincrementColspan
+		 *	@return {void}
+		 **/
 		deincrementColspan : function(updateOriginal){
 			var colspan = this.getColspan();
 			if(colspan > 1)
@@ -314,6 +482,14 @@
 			else
 				this.hide();
 		},
+		/**
+		 *	Deincrements the rowspan of the element.  If the
+		 *	deincremented rowspan is zero, then the element is
+		 *	hidden.
+		 *
+		 *	@method deincrementRowspan
+		 *	@return {void}
+		 **/
 		deincrementRowspan : function(updateOriginal){
 			var rowspan = this.getRowspan();
 			if(rowspan > 1)
@@ -321,6 +497,14 @@
 			else
 				this.hide();
 		},
+		/**
+		 *	Increments the colspan of the element.  If the
+		 *	current colspan is zero, then the element is
+		 *	shown.
+		 *
+		 *	@method incrementColspan
+		 *	@return {void}
+		 **/
 		incrementColspan : function(){
 			var colspan = this.getColspan();
 			if(!this.isAttached() || this.isVisible())
@@ -328,6 +512,14 @@
 			else
 				this.show();
 		},
+		/**
+		 *	Increments the rowspan of the element.  If the
+		 *	current rowspan is zero, then the element is
+		 *	shown.
+		 *
+		 *	@method incrementRowspan
+		 *	@return {void}
+		 **/
 		incrementRowspan : function(){
 			var rowspan = this.getRowspan();
 			if(!this.isAttached() || this.isVisible())
@@ -337,11 +529,32 @@
 		}
 	}, TableElement.prototype);
 	
+	
+	/**
+	 *	Base class for cell collections (Row, Column).
+	 *	
+	 * 	@class CellCollection
+	 *	@extends TableElement
+	 *	@constructor 
+	 */
 	var CellCollection = createClass({
-		init : function(properties){
+		/**
+		 *	Constructor Function CellCollection
+		 *	
+		 *	@method init
+		 *	@param values {object} An object containing properties to be applied to the class.
+		 */
+		init : function(values){
 			var i, cell;
-			this.$super(properties)
+			this.$super(values)
 			this.applyProperties([
+				/**
+				 * 	An array of Cell objects proxied by this collection.
+				 *
+				 *	@property cells
+				 *	@type {array}
+				 *	@readOnly
+				 **/
 				'cells'
 			], properties);
 			for(cell = this.cells[i=0]; i<this.cells.length; cell = this.cells[++i])
@@ -349,12 +562,27 @@
 					if(cell.element.parents().find(this.element).length == 0)
 						cell.element.appendTo(this.element);
 		},
+		/**
+		 * Adds a Cell element to the cell collection.
+		 *
+		 * @method addCell
+		 * @param index {integer} the index in the collection where the element will be added.
+		 * @param cell {Cell} the Cell element to add to the collection.
+		 * @return {void}
+		 **/
 		addCell : function(index, cell){
 			if(this.element)
 				if(cell.element.parents().find(this.element).length == 0)
 					cell.element.insertAfter(this.cells[index].element);
 			this.cells.splice(index, 0, cell);
 		},
+		/**
+		 * Returns an array of unique cells from a given set of indices.
+		 *
+		 * @method getUniqueCells
+		 * @param indices {array} An array of integers representing indices in the collection.
+		 * @return {array}
+		 **/
 		getUniqueCells : function(indices){
 			var self = this, lastElement;
 			return $.map(indices, function(i, j){
@@ -368,6 +596,13 @@
 				}
 			);
 		},
+		/**
+		 * Returns an array of values from a given set of indices.
+		 *
+		 * @method getCellValues
+		 * @param indices {array} An array of integers representing indices in the collection.
+		 * @return {array}
+		 **/
 		getCellValues : function(indices){
 			var self = this;
 			return $.map(indices, function(i, j){
@@ -375,6 +610,12 @@
 				}
 			);
 		},
+		/**
+		 *	Overridden method
+		 *
+		 * 	@method isVisible
+		 *	@return {boolean}
+		 **/
 		isVisible : function(){
 			var visible = false;
 			$.each(this.cells, function(i, c){
@@ -384,8 +625,20 @@
 		}
 	}, TableElement.prototype);
 	
-	
+	/**
+	 *	Wraps a row element and proxies it's collection of cells.
+	 *	
+	 * 	@class Row
+	 *	@extends CellCollection
+	 *	@constructor 
+	 */
 	var Row = createClass({
+		/**
+		 * 	Overridden method.
+		 *
+		 *	@method hide
+		 * 	@return {void}
+		 **/
 		hide : function(){
 			var showElement = false;
 			$.each(this.cells, function(i, c){
@@ -394,6 +647,12 @@
 			});
 			if(!showElement) this.$super();
 		},
+		/**
+		 * 	Overridden method.
+		 *
+		 *	@method show
+		 * 	@return {void}
+		 **/
 		show : function(){
 			$.each(this.cells, function(i, c){
 				c.incrementRowspan();
@@ -402,12 +661,31 @@
 		}
 	}, CellCollection.prototype);
 	
+	/**
+	 *	Wraps a colulmn element and proxies it's collection of cells.
+	 *	
+	 * 	@class Column
+	 *	@extends CellCollection
+	 *	@constructor 
+	 */
 	var Column = createClass({
+		/**
+		 * 	Overridden method.
+		 *
+		 *	@method hide
+		 * 	@return {void}
+		 **/
 		hide : function(){
 			$.each(this.cells, function(i, c){
 				c.deincrementColspan();
 			});
 		},
+		/**
+		 * 	Overridden method.
+		 *
+		 *	@method show
+		 * 	@return {void}
+		 **/
 		show : function(){
 			$.each(this.cells, function(i, c){
 				c.incrementColspan();
@@ -415,8 +693,22 @@
 		}
 	}, CellCollection.prototype);
 	
+	/**
+	 *	Parses and proxies an HTML table as a set of Row and Column collections.
+	 *	
+	 * 	@class LayoutTable
+	 *	@extends TableElement
+	 *	@constructor 
+	 */
 	var LayoutTable = function(){
 		
+		/**
+		 *	Parses and HTML table into columns and rows.
+		 *
+		 *	@private
+		 *	@method slurpCellCollections
+		 *	@param tableEle {jQuery} The table element to be slurped
+		 **/
 		function slurpCellCollections(tableEle){
 			var rows = [],
 			columns = [],
@@ -426,20 +718,35 @@
 			columnCells = [],
 			row, column, i, j;
 			
+			// Loop through the rows in the table
 			rowEles.each(function(i){
 				var rowEle = $(this);
+				// Loop through the table cells in the row
 				rowEle.children('th, td').each(function(j){
 					var cellEle = $(this),
+					// Get the colspan and rowspan for the cell
 					colspan = parseInt(cellEle.attr('colspan')) || 1,
 					rowspan = parseInt(cellEle.attr('rowspan')) || 1,
 					m = j,
 					cell, k, l;
+					// Loop from the start index through the colspan
 					for(k = j; k < j + colspan; k++){
+						// If we haven't already created an array to
+						// store the cells for this row, create one now.
 						if(!rowCells[i]) rowCells[i] = [];
+						// Find the first empty spot in the row
 						while(rowCells[i][m]) m++;
+						// If we haven't already created an array to
+						// store the cells for this column, create one now.
 						if(!columnCells[m]) columnCells[m] = [];
+						// Loop from the current row index through the rowspan
 						for(l = i; l < i + rowspan; l++){
+							// If we haven't already created an array to
+							// store the cells for this row, create one now.
 							if(!rowCells[l]) rowCells[l] = [];
+							// Now that we have a column and row index for this
+							// cell, create a new element and store it in the
+							// proper position in the row and column arrays
 							cell = rowCells[l][m] =
 								columnCells[m][l] = new Cell({
 								'element' : cellEle
@@ -448,21 +755,21 @@
 					}
 				});
 			});
-			
+			// Loop through the row arrays and create row elements
 			for(i=0; i<rowCells.length; i++){
 				row = rows[i] = new Row({
 					'element' : rowEles.eq(i),
 					'cells' : rowCells[i]
 				});
 			}
-			
+			// Loop through the column arrays and create column elements
 			for(i=0; i<columnCells.length; i++){
 				column = columns[i] = new Column({
 					'element' : columnEles.eq(i),
 					'cells' : columnCells[i]
 				});
 			}
-			
+			// Return the rows and column collections
 			return {
 				'rows' : rows,
 				'columns' : columns
@@ -470,6 +777,12 @@
 		}
 		
 		return createClass({
+			/**
+			 * LayoutTable Constructor Function
+			 *
+			 * @method init
+			 * @param tableEle {jQuery} The table element to be proxied.
+			 **/
 			init : function(tableEle){
 				var properties = {
 					'element' : tableEle
@@ -480,10 +793,30 @@
 				this.$super(properties);
 				
 				this.applyProperties([
-					'rows', // A collection of row objects
-					'columns' // A collection of column objects
+					/**
+					 *	An array of Row collections
+					 *
+					 *	@property rows
+					 *	@type {array}
+					 **/
+					'rows',
+					/**
+					 *	An array of Column collections
+					 *
+					 *	@property columns
+					 *	@type {array}
+					 **/
+					'columns'
 				], properties);
 			},
+			/**
+			 *	Adds a set of cells at the specified index as a column in the table
+			 *
+			 *	@method addColumn
+			 *	@param index {integer} The index for the newly created column.
+			 *	@param cells {array} An array of cells to populate the new column.
+			 *	@return {void}
+			 **/
 			addColumn : function(index, cells){
 				var column = new Column({
 					'cells' : cells
@@ -492,6 +825,14 @@
 					this.rows[i].addCell(index, cells[i]);
 				this.columns = this.columns.splice(index, 0, column);
 			},
+			/**
+			 *	Adds a set of cells at the specified index as a row in the table
+			 *
+			 *	@method addRow
+			 *	@param index {integer} The index for the newly created row.
+			 *	@param cells {array} An array of cells to populate the new row.
+			 *	@return {void}
+			 **/
 			addRow : function(index, cells){
 				var ele = $('<tr></tr>');
 				ele.insertAfter($('tr:eq(' + index + ')', this.element));
@@ -507,41 +848,217 @@
 	// Data Classes //
 	//////////////////
 	
+	/**
+	 *	Base class for all data collections (Record and Field)
+	 *
+	 *	@class DataCollection
+	 *	@extends DynamicClass
+	 *	@constructor
+	 **/
+	var DataCollection = createClass({
+		/**
+		 *	DataCollection Constructor Function
+		 *
+		 *	@method init
+		 *	@param values {object} An object containing properties to be applied to the class
+		 **/
+		init : function(values){
+			this.$super(values);
+			this.applyProperties([
+				/**
+				 *	The cell collection (Row, Column) that this data collection proxies
+				 *
+				 *	@property cellCollection
+				 *	@type {CellCollection}
+				 *	@readOnly
+				 **/
+				'cellCollection'
+			], values)
+		}
+	}, DynamicClass.prototype);
+	
+	/**
+	 *	A collection of cells that represent a field. Fields can be one of two types:
+	 *
+	 *	1. Value Fields: Represent data series in a table.
+	 *	1. Category Fields: Contain category values that correlate to the data contained in value fields.
+	 *
+	 *	Fields contain two sub collections (arrays):
+	 *
+	 *	1. Header Cells: These cells describe the data cells.
+	 *	1. Data Cells: These cells contain values and categories for value and category fields respectively.
+	 *
+	 *	@class Field
+	 *	@extends DataCollection
+	 *	@constructor
+	 **/
 	var Field = createClass({
-		init : function(properties){
-			this.$super(properties);
+		/**
+		 *	Field Class Constructor
+		 *
+		 *	@method init
+		 *	@param values {object} An object containing properties to be applied to the class.
+		 */ 
+		init : function(values){
+			this.$super(values);
 			this.applyProperties([
-				'isValue', // Whether or not this is a value field
+				/**
+				 *	Specifies whether or not this is a value field.
+				 *
+				 *	@property isValue
+				 *	@type {boolean}
+				 *	@readOnly
+				 **/
+				'isValue',
+				/**
+				 *	Specifies whether or not this is a category field.
+				 *
+				 *	@property isCategory
+				 *	@type {boolean}
+				 *	@readOnly
+				 **/
 				'isCategory', // Whether or not this is a category field
-				'units', // If this isValue then the units for the field
+				/**
+				 *	If this isValue then the units for the field
+				 *
+				 *	@property units
+				 *	@type {string}
+				 *	@readOnly
+				 **/
+				'units',
+				/**
+				 *	An array of cells that are the header cells for this
+				 *	field.
+				 *
+				 *	@property headerCells
+				 *	@type {array}
+				 *	@readOnly
+				 **/
 				'headerCells', // The header cells for the field
+				/**
+				 *	An array of cells that are the data cells for this
+				 *	field.
+				 *
+				 *	@property dataCells
+				 *	@type {array}
+				 *	@readOnly
+				 **/
 				'dataCells', // The data cells for the field
-			], properties);
+			], values);
 		}
-	}, DynamicClass.prototype);
+	}, DataCollection.prototype);
 	
+	/**
+	 *	A collection of cells that represent a record. Records can be one of two types:
+	 *
+	 *	1. Header Records: Describe the data contained in the record.  These headers can contain
+	 *	categories, series descriptions, unit descriptions, and table descriptions.
+	 *	1. Data Records: Contain category values that correlate to the data contained in value fields.
+	 *
+	 *	Records contain two sub collections (arrays):
+	 *
+	 *	1. Category Cells: These cells contain the category for the record (year, region, ect.).
+	 *	1. Value Cells: These cells contain values for the record.
+	 *
+	 *	@class Record
+	 *	@extends DataCollection
+	 *	@constructor
+	 **/
 	var Record = createClass({
-		init : function(properties){
-			this.$super(properties);
+		init : function(values){
+			this.$super(values);
 			this.applyProperties([
-				'isHeader', // Whether or not this is a header record
-				'isData', // Whether or not this is a data record
-				'categoryCells', // The category cells for the record
-				'valueCells', // The value cells for the record
-				'values', // A hash of the type <field index, parsed value>
-			], properties);
-		}
-	}, DynamicClass.prototype);
-	
-	var SparseDataCollection = createClass({
-		init : function(properties){
-			this.$super(properties);
-			this.applyProperties([
+				/**
+				 *	Specifies whether or not this is a header record
+				 *
+				 *	@property isHeader
+				 *	@type {boolean}
+				 *	@readOnly
+				 **/
+				'isHeader',
+				/**
+				 *	Specifies whether or not this is a data record
+				 *
+				 *	@property isData
+				 *	@type {boolean}
+				 *	@readOnly
+				 **/
+				'isData',
+				/**
+				 *	An array of cells that are the category cells for the record
+				 *
+				 *	@property categoryCells
+				 *	@type {array}
+				 *	@readOnly
+				 **/
+				'categoryCells',
+				/**
+				 *	An array of cells that are the value cells for the record.
+				 *
+				 *	@property valueCells
+				 *	@type {array}
+				 *	@readOnly
+				 **/
+				'valueCells',
+				/**
+				 *	A hash (object) of <field index, value> for the value cells
+				 *
+				 *	@property values
+				 *	@type {object}
+				 *	@readOnly
+				 **/
 				'values',
+			], values);
+		}
+	}, DataCollection.prototype);
+	
+	/**
+	 *	A collection that proxies a sparse array or array like object. This allows for a table
+	 *	to skip physical rows and columns when creating fields and records, maintaning both a
+	 *	relative index for the record among the records/fields in the table, as well as an
+	 *	absolute index that represents the physical index of the Row or Column in the table.
+	 *
+	 *	@class SparseDataCollection
+	 *	@extends DynamicClass
+	 *	@constructor
+	 **/
+	var SparseDataCollection = createClass({
+		/**
+		 *	SparseDataCollection Constructor Function
+		 *
+		 *	@method init
+		 *	@param values {object} An object containing properties to be applied to the class.
+		 **/
+		init : function(properties){
+			this.$super(properties);
+			this.applyProperties([
+				/**
+				 *	The array or array like object proxied by the collection.
+				 *
+				 *	@property values
+				 *	@type {object}
+				 *	@readOnly
+				 **/
+				'values',
+				/**
+				 *	Specifies how the keys in the collection should be ordered. Possible values
+				 *	are 'ascending' or 'descending'.
+				 *
+				 *	@property orderBy
+				 *	@type {string}
+				 *	@default 'descending'
+				 *	@readOnly
+				 **/
 				'orderBy'
 			], properties);
 			this.createSortedKeys();
 		},
+		/**
+		 *	Sorts the keys based on the value of the instances orderBy property.
+		 *
+		 *	@method createSortedKeys
+		 *	@return {void}
+		 **/
 		createSortedKeys : function(){
 			this.keys = [];
 			
@@ -567,9 +1084,26 @@
 				return ret;
 			})
 		},
+		/**
+		 *	Accessor method, returns the value stored at a specified index
+		 *
+		 *	@method get
+		 *	@param index {integer} The index of the item to be returned.
+		 *	@return {object} The item stored at the specified index.
+		 **/
 		get : function(index){
 			return this.values[index];
 		},
+		/**
+		 *	Iteration method. Similar to jQuery's $.each method.  Iterates
+		 *	over collection, calling the callback for each value.  The callback
+		 *	is executed in the context of the item, and is passed the sorted index
+		 *	in the collection, as well as the absolute index of the item (or the key).
+		 *
+		 *	@method each
+		 *	@param callback {function} The callback to be executed for each element in the collection.
+		 *	@return {void}
+		 **/
 		each : function(callback){
 			var cIndex, aIndex;
 			for(i = 0; i < this.keys.length; i++){
@@ -579,6 +1113,18 @@
 				}
 			}
 		},
+		/**
+		 *	Iteration method. Similar to jQuery's $.map method.  Iterates
+		 *	over collection, calling the callback for each value.  The callback
+		 *	is executed in the context of the item, and is passed the sorted index
+		 *	in the collection, as well as the absolute index of the item (or the key). The callback
+		 *	can return a value, which is mapped into a new array returned by the map function.  If the
+		 *	callback returns null, then no item is added to the array.
+		 *
+		 *	@method map
+		 *	@param callback {function} The callback to be executed for each element in the collection.
+		 *	@return {array}
+		 **/
 		map : function(callback){
 			var ret = [],
 			val, i, j;
@@ -591,13 +1137,33 @@
 			}
 			return ret;
 		},
+		/**
+		 *	Returns the number of keys contained in the collection.
+		 *
+		 *	@method getLength
+		 *	@return {int}
+		 **/
 		getLength : function(){
 			return this.keys.length;
 		}
 	}, DynamicClass.prototype);
 	
+	/**
+	 *	The data counterpart to LayoutTable.  While the former is a collection of Rows and Columns, this is
+	 *	a collection of Fields and Records.
+	 *
+	 *	@class DataTable
+	 **/
 	var DataTable = function(){
 		
+		/**
+		 *	Parses the units or the title from a regex, record index, or string.
+		 *
+		 *	@method parseUnitsOrTitle
+		 *	@param ops {object} The options for the units or the title
+		 *	@return {void}
+		 *	@private
+		 **/
 		function parseUnitsOrTitle(ops){
 			var ret = void 0;
 			if(typeof ops.text == 'string'){
@@ -623,7 +1189,15 @@
 				)[ops.regex.match];
 			return typeof ret == 'string' ? $.trim(ret) : ret;
 		};
-		
+		/**
+		 *	Parses the title, wraps parseUnitsOrTitle.  If a caption exists for
+		 *	the table, this is used in lieu of the passed options.
+		 *
+		 *	@method parseTitle
+		 *	@param options {object} The options for the title
+		 *	@return {void}
+		 *	@private
+		 **/
 		function parseTitle(options){
 			var caption;
 			
@@ -638,7 +1212,14 @@
 			}
 			
 		};
-		
+		/**
+		 *	Parses the units, wraps parseUnitsOrTitle.
+		 *
+		 *	@method parseUnits
+		 *	@param options {object} The options for the units
+		 *	@return {void}
+		 *	@private
+		 **/
 		function parseUnits(options){
 			if(options.units === void 0){
 				this.units = void 0;
@@ -646,7 +1227,16 @@
 				this.units = parseUnitsOrTitle.call(this, options.units);
 			}
 		};
-		
+		/**
+		 *	Parses the fields in the table based on the passed options.  Fields are
+		 *	divided into three SparseDataCollections, one for category fields, one
+		 *	for value fields, and one for all fields.
+		 *
+		 *	@method parseFields
+		 *	@param options {object} The options for the table.
+		 *	@return {void}
+		 *	@private
+		 **/
 		function parseFields(options){
 			var categoryFields = {},
 			valueFields = {},
@@ -678,20 +1268,50 @@
 				});
 			}
 			
+			/**
+			 *	A collection of all Fields parsed from the table.
+			 *
+			 *	@property fields
+			 *	@type {SparseDataCollection}
+			 *	@readOnly
+			 **/
 			this.fields = new SparseDataCollection({
 				'values' : $.extend({}, categoryFields, valueFields),
 				'orderBy' : 'ascending'
 			});
+			/**
+			 *	A collection of all category Fields parsed from the table.
+			 *
+			 *	@property categoryFields
+			 *	@type {SparseDataCollection}
+			 *	@readOnly
+			 **/
 			this.categoryFields = new SparseDataCollection({
 				'values' : categoryFields,
 				'orderBy' : 'ascending'
 			});
+			/**
+			 *	A collection of all value parsed from the table.
+			 *
+			 *	@property valueFields
+			 *	@type {SparseDataCollection}
+			 *	@readOnly
+			 **/
 			this.valueFields = new SparseDataCollection({
 				'values' : valueFields,
 				'orderBy' : 'ascending'
 			});
 		};
-		
+		/**
+		 *	Parses the records in the table based on the passed options.  Records are
+		 *	divided into three SparseDataCollections, one for header records, one for 
+		 *	data records, and one for all records.
+		 *
+		 *	@method parseRecords
+		 *	@param options {object} The options for the table.
+		 *	@return {void}
+		 *	@private
+		 **/
 		function parseRecords(options){
 			var headerRecords = {},
 			dataRecords = {},
@@ -729,15 +1349,35 @@
 					'values' : values
 				});
 			}
-			
+			/**
+			 *	A collection of all Records parsed from the table.
+			 *
+			 *	@property records
+			 *	@type {SparseDataCollection}
+			 *	@readOnly
+			 **/
 			this.records = new SparseDataCollection({
 				'values' : $.extend({}, headerRecords, dataRecords),
 				'orderBy' : 'ascending'
 			});
+			/**
+			 *	A collection of all header Records parsed from the table.
+			 *
+			 *	@property headerRecords
+			 *	@type {SparseDataCollection}
+			 *	@readOnly
+			 **/
 			this.headerRecords = new SparseDataCollection({
 				'values' : headerRecords,
 				'orderBy' : 'ascending'
 			});
+			/**
+			 *	A collection of all data Records parsed from the table.
+			 *
+			 *	@property dataRecords
+			 *	@type {SparseDataCollection}
+			 *	@readOnly
+			 **/
 			this.dataRecords = new SparseDataCollection({
 				'values' : dataRecords,
 				'orderBy' : 'ascending'
@@ -745,24 +1385,111 @@
 		};
 		
 		return createClass({
+			/**
+			 *	LayoutTable Constructor Function
+			 *
+			 *	@method init
+			 *	@param layoutTable {LayoutTable} The LayoutTable instance that proxies
+			 *	the physical table for this DataTable instance.
+			 *	@param options {object} The options object for parsing the data out of
+			 *	the LayoutTable.  See the jQuery.autoChart module for a description of
+			 *	the options and defaults.
+			 **/
 			init : function(layoutTable, options){
-				
+				/**
+				 *	The options object passed to the constructor function.
+				 *
+				 *	@property options
+				 *	@type {object}
+				 *	@readOnly
+				 **/
 				this.options = options;
 				// Digest the options
+				/**
+				 *	The layout type of this datatable as defined in the options
+				 *	object.
+				 *
+				 *	@property layout
+				 *	@type {string}
+				 *	@readOnly
+				 **/
 				this.layout = options.layout;
+				/**
+				 *	The LayoutTable that proxies the physical table for this data table.
+				 *
+				 *	@property layoutTable
+				 *	@type {LayoutTable}
+				 *	@readOnly
+				 **/
 				this.layoutTable = layoutTable;
+				/**
+				 *	The CellCollection that contains the field information for this table.
+				 *	If the layout is 'vertical', then the fieldCollection will be the
+				 *	columns from the layoutTable.  If the layout 'horizontal', then the
+				 *	fieldCollection will be the rows from the layoutTable.
+				 *
+				 *	@property fieldCollection
+				 *	@type {CellCollection}
+				 *	@readOnly
+				 **/
 				this.fieldCollection = this.layout == 'vertical' ?
 					layoutTable.columns : layoutTable.rows,
+				/**
+				 *	The CellCollection that contains the record information for this table.
+				 *	If the layout is 'vertical', then the recordCollection will be the
+				 *	rows from the layoutTable.  If the layout 'horizontal', then the
+				 *	recordCollection will be the columns from the layoutTable.
+				 *
+				 *	@property recordCollection
+				 *	@type {CellCollection}
+				 *	@readOnly
+				 **/
 				this.recordCollection = this.layout == 'vertical' ?
 					layoutTable.rows : layoutTable.columns,
 				// Record Indices;
+				/**
+				 *	The parsed indices for the header records in the layoutTable.  These
+				 *	are parsed indices, so any string options will be converted to a set
+				 *	of integers.
+				 *
+				 *	@property headerIndices
+				 *	@type {array}
+				 *	@readOnly
+				 **/
 				this.headerIndices = parseIndices(
 					options.header, this.recordCollection.length);
+				/**
+				 *	The parsed indices for the data records in the layoutTable.  These
+				 *	are parsed indices, so any string options will be converted to a set
+				 *	of integers.
+				 *
+				 *	@property dataIndices
+				 *	@type {array}
+				 *	@readOnly
+				 **/
 				this.dataIndices = parseIndices(
 					options.data, this.recordCollection.length);
 				// Field Indices
+				/**
+				 *	The parsed indices for the value fields in the layoutTable.  These
+				 *	are parsed indices, so any string options will be converted to a set
+				 *	of integers.
+				 *
+				 *	@property valueIndices
+				 *	@type {array}
+				 *	@readOnly
+				 **/
 				this.valueIndices = parseIndices(
 					options.value, this.fieldCollection.length);
+				/**
+				 *	The parsed indices for the category fields in the layoutTable.  These
+				 *	are parsed indices, so any string options will be converted to a set
+				 *	of integers.
+				 *
+				 *	@property categoryIndices
+				 *	@type {array}
+				 *	@readOnly
+				 **/
 				this.categoryIndices = parseIndices(
 					options.category, this.fieldCollection.length);
 				
@@ -972,8 +1699,6 @@
 	
 	var InteractiveChartableTable = createClass({
 		
-		dataTableClass : ChartableTable,
-		
 		init : function(tableEle, options, onCharted){
 			var chartableTable, valueCell, checkboxes,
 			addRows = [], addColumns = [], addGroup, addArray,
@@ -984,17 +1709,28 @@
 			this.$super(tableEle, options, ChartableTable);
 			
 			for(i=0; i<this.dataTables.length; i++){
+				// The current chartable table being processed
 				chartableTable = this.dataTables[i];
+				// Is this a multichartable tabl
 				isMultiChartTable = chartableTable.options.multiChart !== void 0 ?
 					chartableTable.options.multiChart : chartableTable.valueFields.getLength() > 1;
+				// Are we adding columns or rows
 				addGroup =  chartableTable.layout == 'vertical' ? addRows : addColumns;
+				// The index for the ror/column to be added
 				addIndex = chartableTable.options.controlsIndex ||
 					chartableTable.headerIndices[chartableTable.headerIndices.length - 1];
+				// The current row/column being processed, represented by an array
 				addArray = addGroup[addIndex] || (addGroup[addIndex] = []);
+				// The category cell where we will add the graph and clear buttons for
+				// multi-chartable tables, or a spacer for single chartable tables
+				categoryCell = new Cell();
+				// The row/column indices where the category cell will start and end
 				categoryCellStartIndex = chartableTable.categoryIndices[0];
 				categoryCellEndIndex = chartableTable.valueIndices[0];
-				categoryCell = new Cell();
 				
+				// Loop from the start and end indices for the category cell, adding it
+				// to that position in the addArray, and incrementing its column/rowspan
+				// for vertical/horizontal tables
 				for(j=categoryCellStartIndex; j<categoryCellEndIndex; j++){
 					addArray[j] = categoryCell;
 					if(j < categoryCellEndIndex - 1)
@@ -1002,9 +1738,13 @@
 							categoryCell.incrementColspan(true) :
 							categoryCell.incrementRowspan(true);
 				}
+				// If this is a multichartable table, create a jQuery collection to store the
+				// checkboxes, used later when generating the charting buttons.
 				if(isMultiChartTable)
 					checkboxes = $();
-					
+				
+				// Loop through the value indices, adding cells and checkboxes/buttons for mulit/single
+				// chartable tables
 				for(j=0; j<chartableTable.valueIndices.length; j++){
 					valueIndex = chartableTable.valueIndices[j];
 					addArray[valueIndex] = valueCell = new Cell();
@@ -1016,6 +1756,7 @@
 						valueCell.element.append(this.generateSingleChartButton(valueIndex, chartableTable, onCharted))
 					}
 				}
+				// If this is a multi-chartable table, create and add the charting buttons
 				if(isMultiChartTable){
 					buttons = this.generateMultiChartButtons(checkboxes, chartableTable, onCharted);
 					categoryCell.element.append(buttons.graphButton);
@@ -1026,6 +1767,7 @@
 			rowsAdded = 0;
 			columnsAdded = 0;
 			
+			// Loop through the add rows and fill in any empty spots with new cells
 			for(i=0; i<addRows.length; i++){
 				if(addRows[i]){
 					for(j=0; j<this.layoutTable.columns.length; j++){
@@ -1036,6 +1778,8 @@
 				}
 			}
 			
+			// Loop through the add columns, and fill in any empty spots by incrementing
+			// the colspan of existing cells
 			for(i=0; i<addColumns.length; i++){
 				if(addColumns[i]){
 					for(j=0; j<this.layoutTable.rows.length; j++){
@@ -1047,11 +1791,12 @@
 				}
 			}
 			
+			// Add the rows
 			for(i=0; i<addRows.length; i++){
 				if(addRows[i])
 					this.layoutTable.addRow(i + rowsAdded++, addRows[i]);
 			}
-			
+			// Add the columns
 			for(i=0; i<addColumns.length; i++){
 				if(addColumns[i])
 					this.layoutTable.addColumn(i + columnsAdded++, addColumns[i]);
@@ -1147,5 +1892,14 @@
 	$.fn.autoChart = function(options){
 		return new FancyboxChartableTable(this, options);
 	};
+	
+	$.extend($.fn.autoChart, {
+		'LayoutTable' : LayoutTable,
+		'DataTable' : DataTable,
+		'MultiDataTable' : MultiDataTable,
+		'ChartableTable' : ChartableTable,
+		'InteractiveChartableTable' : InteractiveChartableTable,
+		'FancyboxChartableTable' : FancyboxChartableTable
+	});
 	
 }(jQuery))
