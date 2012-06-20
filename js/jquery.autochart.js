@@ -1715,6 +1715,9 @@
 						'yAxis' : s.axis
 					}
 				}),
+				'legend' : {
+					'enabled' : chartData.series.length > 1
+				},
 				'xAxis' : {
 					'categories' : chartData.xAxis.isDateTime ? void 0 :
 						chartData.xAxis.categories,
