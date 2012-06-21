@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+	<title>Autochart Tests</title>
+	<script type="text/javascript" src="/global/scripts/jquery/jquery-1.7.1.min.js"></script>
+	<script type="text/javascript" src="http://yui.yahooapis.com/3.5.1/build/yui/yui-min.js"></script>
+	<script type="text/javascript" src="../js/jquery.autoChart.js"></script>
+	<script type="text/javascript" src="/global/scripts/modules/lib/mustache.js"></script>
+	<style type="text/css">
+	.yui3-skin-sam .yui3-console-entry-pass .yui3-console-entry-cat {
+		background-color: green;
+		color: #fff;
+	}
+	
+	.yui3-skin-sam .yui3-console-entry-fail .yui3-console-entry-cat {
+		background-color: red;
+		color: #fff;
+	}
+	
+	.yui3-skin-sam .yui3-console-entry-ignore .yui3-console-entry-cat {
+		background-color: #666;
+	}
+	</style>
+</head>
+<body class="yui3-skin-sam  yui-skin-sam">
+<div id="console"></div>
+<div id="testContainer"></div>
+<script>
+YUI().use("test", "console", function (Y) {
+	
+	// Table Templates
+	var headerCellTemplate = '<th {{#colspan}}colspan="{{colspan}}"{{/colspan}} {{#rowspan}}rowspan="{{rowspan}}"{{/rowspan}}>{{&value}}</th>';
+	var bodyCellTemplate = '<td {{#colspan}}colspan="{{colspan}}"{{/colspan}} {{#rowspan}}rowspan="{{rowspan}}"{{/rowspan}}>{{&value}}</td>';
+	var rowTemplate = '<tr>{{#cells}}{{> cellTemplate}}{{/cells}}</tr>';
+	var tableTemplate = [
+		'<table><thead>{{#headerRows}}{{> headerRowTemplate}}{{/headerRows}}</thead>',
+		'<tbody>{{#bodyRows}}{{> bodyRowTemplate}}{{/bodyRows}}</tbody></table>'
+	].join('');
+	
+	var testContainer = $('#testContainer');
+	
+	//create the console
+	var r = new Y.Console({
+		newestOnTop : false,
+		style: 'block' // to anchor in the example content
+	});
+	
+	r.render('#console');
+	
+	function logEvent(event){
+		
+		//data variables
+		var message = "",
+			messageType = "";
+		
+		switch(event.type){
+			case Y.Test.Runner.BEGIN_EVENT:
+				message = "Testing began at " + (new Date()).toString() + ".";
+				messageType = "info";
+				break;
+				
+			case Y.Test.Runner.COMPLETE_EVENT:
+				message = Y.substitute("Testing completed at " +
+					(new Date()).toString() + ".\n" +
+					"Passed:{passed} Failed:{failed} " +
+					"Total:{total} ({ignored} ignored)",
+					event.results);
+				messageType = "info";
+				break;
+				
+			case Y.Test.Runner.TEST_FAIL_EVENT:
+				message = event.testName + ": failed.\n" + event.error.getMessage();
+				messageType = "fail";
+				break;
+				
+			case Y.Test.Runner.TEST_IGNORE_EVENT:
+				message = event.testName + ": ignored.";
+				messageType = "ignore";
+				break;
+				
+			case Y.Test.Runner.TEST_PASS_EVENT:
+				message = event.testName + ": passed.";
+				messageType = "pass";
+				break;
+				
+			case Y.Test.Runner.TEST_SUITE_BEGIN_EVENT:
+				message = "Test suite \"" + event.testSuite.name + "\" started.";
+				messageType = "info";
+				break;
+				
+			case Y.Test.Runner.TEST_SUITE_COMPLETE_EVENT:
+				message = Y.substitute("Test suite \"" +
+					event.testSuite.name + "\" completed" + ".\n" +
+					"Passed:{passed} Failed:{failed} " +
+					"Total:{total} ({ignored} ignored)",
+					event.results);
+				messageType = "info";
+				break;
+				
+			case Y.Test.Runner.TEST_CASE_BEGIN_EVENT:
+				message = "Test case \"" + event.testCase.name + "\" started.";
+				messageType = "info";
+				break;
+				
+			case Y.Test.Runner.TEST_CASE_COMPLETE_EVENT:
+				message = Y.substitute("Test case \"" +
+					event.testCase.name + "\" completed.\n" +
+					"Passed:{passed} Failed:{failed} " +
+					"Total:{total} ({ignored} ignored)",
+					event.results);
+				messageType = "info";
+				break;
+			default:
+				message = "Unexpected event " + event.type;
+				message = "info";
+		}
+	
+		Y.log(message, messageType, "Hypo Tests");
+	};
+	
+	var TableElementCase = new Y.Test.Case({
+		name: "TableElement Test Case",
+		
+		setUp : function(){
+			this.elementHTML = Mustache.render(bodyCellTemplate, {value:'&nbsp;'});
+			this.attachedElement = $(this.elementHTML).appendTo(testContainer);
+			this.unattachedElement = $(this.elementHTML);
+			this.attachedTableElement = new $.fn.autoChart.TableElement({'element' : this.attachedElement});
+			this.unattachedTableElement = new $.fn.autoChart.TableElement({'element' : this.unattachedElement});
+		},
+		
+		tearDown : function(){
+			delete this.elementHTML;
+			delete this.attachedElement;
+			delete this.unattachedElement;
+			delete this.attachedTableElement;
+			delete this.unattachedTableElement;
+			testContainer.html('');
+		},
+		
+		'Test Element Wrapper' : function(){
+			Y.Assert.areSame(this.attachedElement, this.attachedTableElement.element,
+				"The element of the TableElement wrapper should match the wrapped element");
+			Y.Assert.areSame(this.unattachedElement, this.unattachedTableElement.element,
+				"The element of the TableElement wrapper should match the wrapped element");
+		},
+		
+		'Test Element Equality' : function(){
+			Y.Assert.isTrue(this.attachedTableElement.equals(this.attachedTableElement),
+				"Elements with the same element should pass the equality test");
+			Y.Assert.isTrue(this.unattachedTableElement.equals(this.unattachedTableElement),
+				"Elements with the same element should pass the equality test");
+		},
+		
+		'Test Element Hide' : function(){
+			this.attachedTableElement.hide();
+			Y.Assert.isTrue(this.attachedElement.is(':hidden'),
+				"Calling hide() on the wrapper should hide the wrapped element");
+		},
+		
+		'Test Element Show' : function(){
+			this.attachedTableElement.hide();
+			this.attachedTableElement.show();
+			Y.Assert.isTrue(this.attachedElement.is(':visible'),
+				"Calling show() on the wrapper should show the wrapped element");
+		},
+		'Test Element isVisible' : function(){
+			this.attachedElement.hide();
+			Y.Assert.isFalse(this.attachedTableElement.isVisible(),
+				"Calling isVisible on the wrapper of a hidden element should return false");
+			this.attachedElement.show();
+			Y.Assert.isTrue(this.attachedTableElement.isVisible(),
+				"Calling isVisible on the wrapper of a visible element should return true");
+		},
+		'Test Element isAttached' : function(){
+			Y.Assert.isTrue(this.attachedTableElement.isAttached(),
+				"Calling isAttached on the wrapper of an attached element should return true");
+			Y.Assert.isFalse(this.unattachedTableElement.isAttached(),
+				"Calling isAttached on the wrapper of an unattached element should return false");
+			
+		}
+	})
+
+	var CellCase = new Y.Test.Case({
+		name: "Cell Test Case",
+		
+		setUp : function(){
+			this.str1 = 'foo';
+			this.str2 = 'bar';
+			this.value = '<span><a>' + this.str1 +
+				'</a>&nbsp;<sub>2</br></sub><sup>2</sup></span>';
+			this.colspan1 = 2;
+			this.rowspan1 = 2;
+			this.colspan2 = 3;
+			this.rowspan2 = 3;
+			this.bodyCellHTML = Mustache.render(
+				bodyCellTemplate,
+				{
+					colspan : this.colspan1,
+					rowspan : this.rowspan1,
+					value : this.value
+				}
+			);
+			this.headerCellHTML = Mustache.render(
+				headerCellTemplate,
+				{
+					colspan : this.colspan1,
+					rowspan : this.rowspan1,
+					value : this.value
+				}
+			);
+			this.tdElement = $(this.bodyCellHTML).appendTo(testContainer);
+			this.tdCell = new $.fn.autoChart.Cell({'element' : this.tdElement});
+			this.thElement = $(this.headerCellHTML).appendTo(testContainer);
+			this.thCell = new $.fn.autoChart.Cell({'element' : this.thElement});
+			this.noElementCell = new $.fn.autoChart.Cell({});
+		},
+		
+		tearDown : function(){
+			delete this.str;
+			delete this.value;
+			delete this.colspan1;
+			delete this.rowspan1;
+			delete this.colspan2;
+			delete this.rowspan2;
+			delete this.bodyCellHTML;
+			delete this.headerCellHTML;
+			delete this.tdElement;
+			delete this.tdCell;
+			delete this.thElement;
+			delete this.thCell;
+			testContainer.html('');
+		},
+		
+		"Test Cell Element Wrapper" : function(){
+			Y.Assert.areSame(this.tdElement, this.tdCell.element, "The Cell class should wrap the passed element");
+			Y.Assert.areSame(this.thElement, this.thCell.element, "The Cell class should wrap the passed element");
+			Y.Assert.isInstanceOf($, this.noElementCell.element, "Cells with no elements assigned on init should create a new element");
+		},
+		
+		"Test Original Colspan" : function(){
+			Y.Assert.areSame(this.colspan1, this.tdCell.originalColspan);
+			Y.Assert.areSame(this.colspan1, this.thCell.originalColspan);
+		},
+		
+		"Test Original Rowspan" : function(){
+			Y.Assert.areSame(this.rowspan1, this.tdCell.originalRowspan);
+			Y.Assert.areSame(this.rowspan1, this.thCell.originalRowspan);
+		},
+		"Test Get Value" : function(){
+			Y.Assert.areSame(this.str1, this.tdCell.getValue(),
+				"The retrieved value of a cell should equal the text minus superscripts, subscripts, non-breaking spaces, and all html tags");
+			Y.Assert.areSame(this.str1, this.thCell.getValue(),
+				"The retrieved value of a cell should equal the text minus superscripts, subscripts, non-breaking spaces, and all html tags");			
+		},
+		"Test Set Value" : function(){
+			this.tdCell.setValue(this.str2);
+			this.thCell.setValue(this.str2);
+			Y.Assert.areSame(this.str2, this.tdElement.html(),
+				"Setting the value of a cell should set the html of the wrapped element");
+			Y.Assert.areSame(this.str2, this.thElement.html(),
+				"Setting the value of a cell should set the html of the wrapped element");
+		},
+		"Test Get Colspan" : function(){
+			this.tdElement.attr('colspan', this.colspan2);
+			this.thElement.attr('colspan', this.colspan2);
+			Y.Assert.areSame(this.colspan2, this.tdCell.getColspan(),
+				"Get colspan should return the colspan of the wrapped element");
+			Y.Assert.areSame(this.colspan2, this.thCell.getColspan(),
+				"Get colspan should return the colspan of the wrapped element");
+		},
+		"Test Get Rowspan" : function(){
+			this.tdElement.attr('rowspan', this.rowspan2);
+			this.thElement.attr('rowspan', this.rowspan2);
+			Y.Assert.areSame(this.rowspan2, this.tdCell.getRowspan(),
+				"Get rowspan should return the rowspan of the wrapped element");
+			Y.Assert.areSame(this.rowspan2, this.thCell.getRowspan(),
+				"Get rowspan should return the rowspan of the wrapped element");
+		},
+		"Test Set Colspan" : function(){
+			this.tdCell.setColspan(this.colspan2);
+			this.thCell.setColspan(this.colspan2);
+			Y.Assert.areEqual(this.colspan2, this.tdElement.attr('colspan'),
+				"Set colspan should set the colspan attribute of the wrapped element");
+			Y.Assert.areEqual(this.colspan2, this.thElement.attr('colspan'),
+				"Set colspan should set the colspan attribute of the wrapped element");
+			this.tdCell.setColspan(0);
+			this.thCell.setColspan(0);
+			Y.Assert.isTrue(this.tdElement.is(':hidden'),
+				"Setting the colspan to zero should hide the wrapped element");
+			Y.Assert.isTrue(this.thElement.is(':hidden'),
+				"Setting the colspan to zero should hide the wrapped element");
+		},
+		"Test Set Rowspan" : function(){
+			this.tdCell.setRowspan(this.rowspan2);
+			this.thCell.setRowspan(this.rowspan2);
+			Y.Assert.areEqual(this.rowspan2, this.tdElement.attr('rowspan'),
+				"Set rowspan should set the rowspan attribute of the wrapped element");
+			Y.Assert.areEqual(this.rowspan2, this.thElement.attr('rowspan'),
+				"Set rowspan should set the rowspan attribute of the wrapped element");
+			this.tdCell.setRowspan(0);
+			this.thCell.setRowspan(0);
+			Y.Assert.isTrue(this.tdElement.is(':hidden'),
+				"Setting the rowspan to zero should hide the wrapped element");
+			Y.Assert.isTrue(this.thElement.is(':hidden'),
+				"Setting the rowspan to zero should hide the wrapped element");
+		},
+		"Test Increment Colspan" : function(){
+			this.tdCell.incrementColspan();
+			this.thCell.incrementColspan();
+			Y.Assert.areEqual(this.colspan1 + 1, this.tdElement.attr('colspan'),
+				"Incrementing the colspan should increase the colspan of the wrapped element by 1");
+			Y.Assert.areEqual(this.colspan1 + 1, this.thElement.attr('colspan'),
+				"Incrementing the colspan should increase the colspan of the wrapped element by 1");
+		},
+		"Test Increment Rowspan" : function(){
+			this.tdCell.incrementRowspan();
+			this.thCell.incrementRowspan();
+			Y.Assert.areEqual(this.rowspan1 + 1, this.tdElement.attr('rowspan'),
+				"IncrementRowspan should increase the rowspan of the wrapped element by 1");
+			Y.Assert.areEqual(this.rowspan1 + 1, this.thElement.attr('rowspan'),
+				"IncrementRowspan should increase the rowspan of the wrapped element by 1");
+		},
+		"Test deincrement Colspan" : function(){
+			this.tdCell.deincrementColspan();
+			this.thCell.deincrementColspan();
+			Y.Assert.areEqual(this.colspan1 - 1, this.tdElement.attr('colspan'),
+				"deincrementColspan should decrease the colspan of the wrapped element by 1");
+			Y.Assert.areEqual(this.colspan1 - 1, this.thElement.attr('colspan'),
+				"deincrementColspan should decrease the colspan of the wrapped element by 1");
+		},
+		"Test deincrement Rowspan" : function(){
+			this.tdCell.deincrementRowspan();
+			this.thCell.deincrementRowspan();
+			Y.Assert.areEqual(this.rowspan1 - 1, this.tdElement.attr('rowspan'),
+				"deincrementRowspan should decrease the rowspan of the wrapped element by 1");
+			Y.Assert.areEqual(this.rowspan1 - 1, this.thElement.attr('rowspan'),
+				"deincrementRowspan should decrease the rowspan of the wrapped element by 1");
+		}
+	});
+	
+	var CellCollectionCase = new Y.Test.Case({
+		
+		name : 'CellCollection Test Case',
+		
+		setUp : function(){
+			this.value = 'foo';
+			this.elementHTML = '<tr></tr>';
+			this.tdHTML = '<td>' + this.value +'</td>';
+			
+			this.element = $(this.elementHTML).appendTo(testContainer);
+			this.tdElement1 = $(this.tdHTML);
+			this.tdElement2 = $(this.tdHTML);
+			this.cell1 = new $.fn.autoChart.Cell({'element' : this.tdElement1});
+			this.cell2 = new $.fn.autoChart.Cell({'element' : this.tdElement1});
+			this.cell3 = new $.fn.autoChart.Cell({'element' : this.tdElement2});
+			this.cells = [this.cell1, this.cell2];
+			this.cellCollection = new $.fn.autoChart.CellCollection(
+				{
+					'element' : this.element,
+					'cells' : this.cells
+				}
+			);
+		},
+		
+		tearDown : function(){
+			delete this.value;
+			delete this.elementHTML;
+			delete this.tdHTML;
+			delete this.element;
+			delete this.tdElement1;
+			delete this.tdElement2;
+			delete this.cell1;
+			delete this.cell2;
+			delete this.cell3;
+			delete this.cells;
+			testContainer.html('');
+		},
+		
+		"Test Collection Creation" : function(){
+			Y.Assert.isTrue(this.cell1.isAttached(),
+				"If a cell in the collection is not a child of the collection element, it should be appended to that element");
+		},
+		"Test Add Cell" : function(){
+			this.cellCollection.addCell(1, this.cell3)
+			Y.Assert.isTrue(this.cell3.isAttached(),
+				"If a cell is added to the cell collection, then it should be attached to the CellCollection element");
+			Y.Assert.areSame(1, $.inArray(this.cell3, this.cellCollection.cells),
+				"If a cell is added to the cell collection, then it should be at the specified index in the CellCollection cells array");
+		},
+		"Test Get Unique Cells" : function(){
+			var uniqueCells = this.cellCollection.getUniqueCells([0,1]);
+			Y.Assert.areSame(1, uniqueCells.length,
+				"Unique cells should return only those cells with unique elements");
+			Y.Assert.areSame(this.cell1, uniqueCells[0],
+				"Get unique cells should return the first unique cell in the cells array for every unique element");
+		},
+		"Test Get Cell Values" : function(){
+			var cellValues = this.cellCollection.getCellValues([0]);
+			Y.Assert.areSame(this.value, cellValues[0],
+				"Get cell values should return the values of the cells for the passed incices");
+		},
+		"Test Is Visible" : function(){
+			Y.Assert.isTrue(this.cellCollection.isVisible(),
+				"The cell collection should be visible if any of the contained cells are visible");
+			this.cell1.hide();
+			this.cell2.hide();
+			Y.Assert.isFalse(this.cellCollection.isVisible(),
+				"The cell collection should not be visible if all the contained cells are hidden");
+		}
+	});
+	
+	var RowCase = new Y.Test.Case({
+		name : "Row Test Case",
+		
+		setUp : function(){
+			this.rowspan = 2;
+			this.rowHTML = Mustache.render(rowTemplate, {
+				cells : [
+					{rowspan:this.rowspan, value:'nbsp;'},
+					{value:'nbsp;'}
+				]
+			},
+			{cellTemplate:bodyCellTemplate});
+			this.rowElement = $(this.rowHTML).appendTo(testContainer);
+			this.cells = $.map($.makeArray($('td', this.rowElement)), function(item, index){
+				return new $.fn.autoChart.Cell({'element' : $(item)});
+			});
+			this.row = new $.fn.autoChart.Row({'element':this.rowElement, 'cells' : this.cells});
+		},
+		
+		tearDown : function(){
+			delete this.rowspan;
+			delete this.rowHTML;
+			delete this.rowElement;
+			delete this.cells;
+			delete this.row;
+			testContainer.html('');
+		},
+		
+		"Test Hide" : function(){
+			this.row.hide();
+			Y.Assert.areSame(1, this.row.cells[0].trueRowspan,
+				"Hiding the row should reduce the rowspan of the cells in it's collection");
+			Y.Assert.areSame(0, this.row.cells[1].trueRowspan,
+				"Hiding the row should reduce the rowspan of the cells in it's collection");
+			Y.Assert.isTrue(this.row.element.is(':visible'),
+				"The row element should still be visible as long as any of the contained cells have a trueRowspan greater than 0");
+			this.row.hide();
+			Y.Assert.areSame(0, this.row.cells[0].trueRowspan,
+				"Hiding the row should reduce the rowspan of the cells in it's collection");
+			Y.Assert.areSame(0, this.row.cells[1].trueRowspan,
+				"Hiding the row should reduce the rowspan of the cells in it's collection");
+			Y.Assert.isTrue(this.row.element.is(':hidden'),
+				"The row element should still be visible as long as any of the contained cells have a trueRowspan greater than 0")
+		},
+		
+		"Test Show" : function(){
+		}
+	})
+	
+	var AutochartSuite = new Y.Test.Suite("Autochart Test Suite");
+	
+	AutochartSuite.add(TableElementCase);
+	AutochartSuite.add(CellCase);
+	AutochartSuite.add(CellCollectionCase);
+	AutochartSuite.add(RowCase);
+	
+	Y.Test.Runner.subscribe(Y.Test.Runner.BEGIN_EVENT, logEvent);
+	Y.Test.Runner.subscribe(Y.Test.Runner.COMPLETE_EVENT, logEvent);
+	Y.Test.Runner.subscribe(Y.Test.Runner.TEST_CASE_BEGIN_EVENT, logEvent);
+	Y.Test.Runner.subscribe(Y.Test.Runner.TEST_CASE_COMPLETE_EVENT, logEvent);
+	Y.Test.Runner.subscribe(Y.Test.Runner.TEST_SUITE_BEGIN_EVENT, logEvent);
+	Y.Test.Runner.subscribe(Y.Test.Runner.TEST_SUITE_COMPLETE_EVENT, logEvent);
+	Y.Test.Runner.subscribe(Y.Test.Runner.TEST_PASS_EVENT, logEvent);
+	Y.Test.Runner.subscribe(Y.Test.Runner.TEST_FAIL_EVENT, logEvent);
+	Y.Test.Runner.subscribe(Y.Test.Runner.TEST_IGNORE_EVENT, logEvent);
+
+	Y.Test.Runner.add(AutochartSuite);
+
+	Y.Test.Runner.run();
+});
+</script>
+
+</body>
+</html>

@@ -407,7 +407,15 @@
 			 *	@type {integer}
 			 *	@readOnly
 			 **/
-			this['originalColspan'] = this.getColspan();
+			/**
+			 * 	The wrapped cell's true colspan.  Can be zero for
+			 * 	hidden elements.
+			 *
+			 *	@property trueColspan
+			 *	@type {integer}
+			 *	@readOnly
+			 **/
+			this['originalColspan'] = this['trueColspan'] = this.getColspan();
 			/**
 			 * 	The wrapped cell's original rowspan.
 			 *
@@ -415,7 +423,15 @@
 			 *	@type {integer}
 			 *	@readOnly
 			 **/
-			this['originalRowspan'] = this.getRowspan();
+			/**
+			 * 	The wrapped cell's true rowspan. Can be zero for
+			 * 	hidden elements;
+			 *
+			 *	@property trueRowspan
+			 *	@type {integer}
+			 *	@readOnly
+			 **/
+			this['originalRowspan'] = this['trueRowspan'] = this.getRowspan();
 		},
 		/**
 		 *	Returns the value of the cell.  This value is derived from the
@@ -447,102 +463,105 @@
 			this.element.html(value)
 		},
 		/**
-		 *	Returns the current colspan of the table cell element
+		 *	Returns the current colspan of the table cell element.  This may be different than the
+		 *	trueColspan of the cell for hidden elements.
 		 *
 		 *	@method getColspan
 		 *	@return {ingeger}
 		 **/
 		getColspan : function(){
-			return parseInt(this.element.attr('colspan')) || 1;
+			return this.element.attr('colspan') !== void 0 ? parseInt(this.element.attr('colspan')) : 1;
 		},
 		/**
-		 *	Returns the current rowspan of the table cell element
+		 *	Returns the current rowspan of the table cell element.  This may be different than the
+		 *	trueRowspan of the cell for hidden elements.
 		 *
 		 *	@method getRowspan
 		 *	@return {integer}
 		 **/
 		getRowspan : function(){
-			return parseInt(this.element.attr('rowspan')) || 1;
+			return this.element.attr('rowspan') !== void 0 ? parseInt(this.element.attr('rowspan')) : 1;
 		},
 		/**
-		 *	Sets the colspan of the table cell element
+		 *	Sets the colspan of the table cell element. If the passed value is
+		 *	zero, then the trueColspan is set to zero, and the element is hidden.
+		 *	The opposite is true as well if the trueRowspan is also greater than
+		 *	zero.
 		 *
 		 *	@method setColspan
+		 *	@param val {integer}
 		 *	@return {void}
 		 **/
 		setColspan : function(val, updateOriginal){
-			this.element.attr('colspan', val);
-			if(updateOriginal) this['originalColspan'] = val;
+			this.element.attr('colspan', Math.max(1, val));
+			this.trueColspan = Math.max(0, val);
+			if(this.trueColspan > 0 && !this.trueRowspan == 0)
+				this.show();
+			else
+				this.hide();
+			if(updateOriginal) this['originalColspan'] = this.trueColspan;
 		},
 		/**
-		 *	Sets the rowspan of the table cell element
+		 *	Sets the rowspan of the table cell element.  If the passed value is
+		 *	zero then the trueRowspan is set to zero, and the element is hidden.
+		 *	The opposite is true as well if the trueColspan is also greater than
+		 *	zero.
 		 *
 		 *	@method setRowspan
+		 *	@param val {integer}
 		 *	@return {void}
 		 **/
 		setRowspan : function(val, updateOriginal){
-			this.element.attr('rowspan', val);
-			if(updateOriginal) this['originalRowspan'] = val;
+			this.element.attr('rowspan', Math.max(1, val));
+			this.trueRowspan = Math.max(0, val);
+			if(this.trueRowspan > 0 && !this.trueColspan == 0)
+				this.show();
+			else
+				this.hide();
+			if(updateOriginal) this['originalRowspan'] = this.trueRowspan;
 		},
 		/**
-		 *	Deincrements the colspan of the element.  If the
-		 *	deincremented colspan is zero, then the element is
-		 *	hidden.
-		 *
+		 *	Deincrements the colspan of the element.
+		 *	
 		 *	@method deincrementColspan
 		 *	@return {void}
 		 **/
 		deincrementColspan : function(updateOriginal){
-			var colspan = this.getColspan();
-			if(colspan > 1)
-				this.setColspan(colspan - 1, updateOriginal);
-			else
-				this.hide();
+			this.setColspan(this.trueColspan - 1, updateOriginal);
 		},
 		/**
-		 *	Deincrements the rowspan of the element.  If the
-		 *	deincremented rowspan is zero, then the element is
-		 *	hidden.
+		 *	Deincrements the rowspan of the element.
 		 *
 		 *	@method deincrementRowspan
 		 *	@return {void}
 		 **/
 		deincrementRowspan : function(updateOriginal){
-			var rowspan = this.getRowspan();
-			if(rowspan > 1)
-				this.setRowspan(rowspan - 1, updateOriginal);
-			else
-				this.hide();
+			this.setRowspan(this.trueRowspan - 1, updateOriginal);		
 		},
 		/**
 		 *	Increments the colspan of the element.  If the
-		 *	current colspan is zero, then the element is
-		 *	shown.
+		 *	current colspan is one and the element is hidden
+		 *	then the element is shown.  This should be used
+		 *	instead of calling show on the cell.
 		 *
 		 *	@method incrementColspan
 		 *	@return {void}
 		 **/
-		incrementColspan : function(){
-			var colspan = this.getColspan();
-			if(!this.isAttached() || this.isVisible())
-				this.setColspan(colspan + 1);
-			else
-				this.show();
+		incrementColspan : function(updateOriginal){
+			this.setColspan(this.trueColspan + 1, updateOriginal);
+				
 		},
 		/**
 		 *	Increments the rowspan of the element.  If the
-		 *	current rowspan is zero, then the element is
-		 *	shown.
+		 *	current rowspan is one and the element is hidden
+		 *	then the element is shown. This should be used
+		 *	instead of calling show on the cell.
 		 *
 		 *	@method incrementRowspan
 		 *	@return {void}
 		 **/
-		incrementRowspan : function(){
-			var rowspan = this.getRowspan();
-			if(!this.isAttached() || this.isVisible())
-				this.setRowspan(rowspan + 1);
-			else
-				this.show();
+		incrementRowspan : function(updateOriginal){
+			this.setRowspan(this.trueRowspan + 1, updateOriginal);
 		}
 	}, TableElement.prototype);
 	
@@ -638,7 +657,7 @@
 			$.each(this.cells, function(i, c){
 				visible |= c.isVisible();
 			});
-			return visible;
+			return Boolean(visible);
 		}
 	}, TableElement.prototype);
 	
@@ -2023,6 +2042,10 @@
 	};
 	
 	$.extend($.fn.autoChart, {
+		'TableElement' : TableElement,
+		'Cell' : Cell,
+		'CellCollection' : CellCollection,
+		'Row' : Row,
 		'LayoutTable' : LayoutTable,
 		'DataTable' : DataTable,
 		'MultiDataTable' : MultiDataTable,
