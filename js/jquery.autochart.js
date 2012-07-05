@@ -46,9 +46,10 @@
  *			
  *			units : void 0,
  *			
- *			//	Format is {Number} for a specific record, {Number}-{Number}
- *			//	for a range, and {Number}+ for all records after and including a
- *			//	specific record.
+ *			//	For horizontal and vertical tables, the format is {Number} for a 
+ *			//	specific record, {Number}-{Number} for a range, and {Number}+ 
+ *			//	for all records after and including a specific record.  Indices
+ *			//	can also be passed as an array of numbers specifying indices.
  *			
  *			header : void 0,
  *			
@@ -67,6 +68,12 @@
  *			//	Same as header but for the value fields
  *			
  *			value : void 0,
+ *
+ *			// 	Same as header but for secondary header fields.  These are
+ *			//	used for complex tables where some of the series descriptions
+ *			// are contained in a field instead of in header records
+ *
+ *			secondaryHeader : void 0
  *			
  *			//	Specifies a record index to insert the charting controls,
  *			//	defaults to the last header record
@@ -113,6 +120,7 @@
 		controlsIndex : void 0,
 		multiChart : void 0,
 		maxChartableUnits : 4,
+		autoParseCategories : true,
 		chartContainerStyles : {
 			height : '600px',
 			width : '800px'
@@ -321,7 +329,7 @@
 				 * 
 				 * @property element
 				 * @type {jQuery}
-				 * @readOnly
+				 * @final
 				 **/
 				'element'
 			], values);
@@ -374,12 +382,16 @@
 		},
 		/**
 		 *	Checks to see if the wrapped element is attached to the dom.
+		 *	If an element is passed, then the return value is whether or
+		 *	not the wrapped is attached to the passed element.
 		 *	
 		 *	@method isAttached
+		 *	@param element {jQuery} Optional.  An element to test the wrapped
+		 *	element's attachment to.
 		 *	@return {boolean}
 		 */
-		isAttached : function(){
-			return this.element.parents().has('body').length > 0;
+		isAttached : function(element){
+			return this.element.parents().filter(element.get(0) || 'body').length > 0;
 		}
 	}, DynamicClass.prototype);
 	
@@ -405,7 +417,7 @@
 			 *
 			 *	@property originalColspan
 			 *	@type {integer}
-			 *	@readOnly
+			 *	@final
 			 **/
 			/**
 			 * 	The wrapped cell's true colspan.  Can be zero for
@@ -413,7 +425,7 @@
 			 *
 			 *	@property trueColspan
 			 *	@type {integer}
-			 *	@readOnly
+			 *	@final
 			 **/
 			this['originalColspan'] = this['trueColspan'] = this.getColspan();
 			/**
@@ -421,7 +433,7 @@
 			 *
 			 *	@property originalRowspan
 			 *	@type {integer}
-			 *	@readOnly
+			 *	@final
 			 **/
 			/**
 			 * 	The wrapped cell's true rowspan. Can be zero for
@@ -429,7 +441,7 @@
 			 *
 			 *	@property trueRowspan
 			 *	@type {integer}
-			 *	@readOnly
+			 *	@final
 			 **/
 			this['originalRowspan'] = this['trueRowspan'] = this.getRowspan();
 		},
@@ -589,7 +601,7 @@
 				 *
 				 *	@property cells
 				 *	@type {array}
-				 *	@readOnly
+				 *	@final
 				 **/
 				'cells'
 			], values);
@@ -607,13 +619,22 @@
 		 * @return {void}
 		 **/
 		addCell : function(index, cell){
+			var afterCell, i;
 			if(this.element)
-				if(cell.element.parents().find(this.element).length == 0)
-					cell.element.insertAfter(this.cells[index].element);
+				if(!cell.isAttached(this.element)){
+					for(
+						(i=index) || (afterCell = this.cells[i]);
+						afterCell && !afterCell.isAttached(this.element);
+						afterCell = this.cells[--i]
+					);
+					if(afterCell) cell.element.insertAfter(afterCell.element);
+					else this.element.prepend(cell.element);
+				}
 			this.cells.splice(index, 0, cell);
 		},
 		/**
-		 * Returns an array of unique cells from a given set of indices.
+		 * Returns an array of unique cells from a given set of indices. This function is
+		 * the inverse of getUniqueCellIndices.
 		 *
 		 * @method getUniqueCells
 		 * @param indices {array} An array of integers representing indices in the collection.
@@ -633,6 +654,34 @@
 			);
 		},
 		/**
+		 *	Returns an array of unique indices for a given cell.  This function is the inverse
+		 *	of getUniqueCells.
+		 *
+		 *	@method getUniqueCellIndices
+		 *	@param cell {array} A an array of Cells to retrive unique indices where they occur
+		 *	in the cell collection.
+		 *	@return {array} An array of integers representing indices in the collection.
+		 **/
+		getUniqueCellIndices : function(cells){
+			var ret = [],
+			cell, i, j, startOfCell, endOfCell;
+			for(i=0; i < cells.length; i++){
+				startOfCell = false;
+				endOfCell = false; // Three states, two true, one false (0)
+				j;
+				for(j=0; j < self.cells.length && !endOfCell; j++){
+					var isEqual = this.cells[j].isEqual(cell);
+					if(!isEqual && startOfCell) endOfCell = true;
+					else{
+						startOfCell = true;
+						ret.push[j];
+					}
+				}
+			};
+			ret.sort(function(a, b){return a > b});
+			return ret;
+		},
+		/**
 		 * Returns an array of values from a given set of indices.
 		 *
 		 * @method getCellValues
@@ -645,6 +694,26 @@
 					return self.cells[i].getValue();
 				}
 			);
+		},
+		/**
+		 * Whether or not a cell added at the specified index will intersect an existing cell in the
+		 * collection.  i.e if a cell at index 0 occurs at indexes 1 and 2, and an index of 1 is passed in, then
+		 * the function will return that cell.  If the cell occured only at 0, or 1 and 2, then the function would return
+		 * undefined.
+		 *
+		 * @method intersects
+		 * @param index {integer} An index in the collection to test for intersection.
+		 * @return {object} Either a cell for an interesection, or undefined for no intersection
+		 **/
+		intersects : function(index){
+			var testCell = this.cells[index],
+			beforeCell = this.cells[index - 1],
+			afterCell = this.cells[index + 1];
+			
+			if(beforeCell && afterCell && beforeCell.equals(testCell) && afterCell.equals(testCell))
+				return testCell;
+			else
+				return void 0;
 		},
 		/**
 		 *	Overridden method
@@ -694,7 +763,7 @@
 				c.incrementRowspan();
 			});
 			this.$super();
-		}
+		},
 	}, CellCollection.prototype);
 	
 	/**
@@ -726,7 +795,7 @@
 			$.each(this.cells, function(i, c){
 				c.incrementColspan();
 			});
-		}
+		},
 	}, CellCollection.prototype);
 	
 	/**
@@ -906,7 +975,7 @@
 				 *
 				 *	@property cellCollection
 				 *	@type {CellCollection}
-				 *	@readOnly
+				 *	@final
 				 **/
 				'cellCollection'
 			], values)
@@ -943,7 +1012,7 @@
 				 *
 				 *	@property isValue
 				 *	@type {boolean}
-				 *	@readOnly
+				 *	@final
 				 **/
 				'isValue',
 				/**
@@ -951,15 +1020,23 @@
 				 *
 				 *	@property isCategory
 				 *	@type {boolean}
-				 *	@readOnly
+				 *	@final
 				 **/
 				'isCategory', // Whether or not this is a category field
+				/**
+				 * If this field represents a secondary header
+				 *
+				 * @property isSecondaryHeader
+				 * @type {boolean}
+				 * @final
+				 **/
+				'isSecondaryHeader',
 				/**
 				 *	If this isValue then the units for the field
 				 *
 				 *	@property units
 				 *	@type {string}
-				 *	@readOnly
+				 *	@final
 				 **/
 				'units',
 				/**
@@ -968,7 +1045,7 @@
 				 *
 				 *	@property headerCells
 				 *	@type {array}
-				 *	@readOnly
+				 *	@final
 				 **/
 				'headerCells', // The header cells for the field
 				/**
@@ -977,7 +1054,7 @@
 				 *
 				 *	@property dataCells
 				 *	@type {array}
-				 *	@readOnly
+				 *	@final
 				 **/
 				'dataCells', // The data cells for the field
 			], values);
@@ -1009,7 +1086,7 @@
 				 *
 				 *	@property isHeader
 				 *	@type {boolean}
-				 *	@readOnly
+				 *	@final
 				 **/
 				'isHeader',
 				/**
@@ -1017,7 +1094,7 @@
 				 *
 				 *	@property isData
 				 *	@type {boolean}
-				 *	@readOnly
+				 *	@final
 				 **/
 				'isData',
 				/**
@@ -1025,7 +1102,7 @@
 				 *
 				 *	@property categoryCells
 				 *	@type {array}
-				 *	@readOnly
+				 *	@final
 				 **/
 				'categoryCells',
 				/**
@@ -1033,15 +1110,24 @@
 				 *
 				 *	@property valueCells
 				 *	@type {array}
-				 *	@readOnly
+				 *	@final
 				 **/
 				'valueCells',
+				/**
+				 *	An array of cells that are the secondary header cells for
+				 *	this record.
+				 *
+				 *	@property secondaryHeaderCells
+				 *	@type {array}
+				 *	@final
+				 **/
+				'secondaryHeaderCells',
 				/**
 				 *	A hash (object) of <field index, value> for the value cells
 				 *
 				 *	@property values
 				 *	@type {object}
-				 *	@readOnly
+				 *	@final
 				 **/
 				'values',
 			], values);
@@ -1073,7 +1159,7 @@
 				 *
 				 *	@property values
 				 *	@type {object}
-				 *	@readOnly
+				 *	@final
 				 **/
 				'values',
 				/**
@@ -1083,7 +1169,7 @@
 				 *	@property orderBy
 				 *	@type {string}
 				 *	@default 'descending'
-				 *	@readOnly
+				 *	@final
 				 **/
 				'orderBy'
 			], properties);
@@ -1191,17 +1277,147 @@
 	 *	@class DataTable
 	 *	@constructor
 	 **/
-	var DataTable = function(){
-		
+	var DataTable = createClass({
+		/**
+		 *	DataTable Constructor Function
+		 *
+		 *	@method init
+		 *	@param layoutTable {LayoutTable} The LayoutTable instance that proxies
+		 *	the physical table for this DataTable instance.
+		 *	@param options {object} The options object for parsing the data out of
+		 *	the LayoutTable.  See the jQuery.autoChart module for a description of
+		 *	the options and defaults.
+		 **/
+		init : function(layoutTable, options){
+			/**
+			 *	The options object passed to the constructor function.
+			 *
+			 *	@property options
+			 *	@type {object}
+			 *	@final
+			 **/
+			this.options = options;
+			/**
+			 *	The LayoutTable that proxies the physical table for this data table.
+			 *
+			 *	@property layoutTable
+			 *	@type {LayoutTable}
+			 *	@final
+			 **/
+			this.layoutTable = layoutTable;
+			// Digest the options
+			/**
+			 *	The layout type of this datatable as defined in the options
+			 *	object.
+			 *
+			 *	@property layout
+			 *	@type {string}
+			 *	@final
+			 **/
+			this.layout = options.layout;
+			/**
+			 *	The CellCollection that contains the field information for this table.
+			 *	If the layout is 'vertical', then the fieldCollection will be the
+			 *	columns from the layoutTable.  If the layout 'horizontal', then the
+			 *	fieldCollection will be the rows from the layoutTable.
+			 *
+			 *	@property fieldCollection
+			 *	@type {CellCollection}
+			 *	@final
+			 **/
+			this.fieldCollection = this.layout == 'vertical' ?
+				layoutTable.columns : layoutTable.rows,
+			/**
+			 *	The CellCollection that contains the record information for this table.
+			 *	If the layout is 'vertical', then the recordCollection will be the
+			 *	rows from the layoutTable.  If the layout 'horizontal', then the
+			 *	recordCollection will be the columns from the layoutTable.
+			 *
+			 *	@property recordCollection
+			 *	@type {CellCollection}
+			 *	@final
+			 **/
+			this.recordCollection = this.layout == 'vertical' ?
+				layoutTable.rows : layoutTable.columns,
+			// Record Indices;
+			/**
+			 *	The parsed indices for the header records in the layoutTable.  These
+			 *	are parsed indices, so any string options will be converted to a set
+			 *	of integers.
+			 *
+			 *	@property headerIndices
+			 *	@type {array}
+			 *	@final
+			 **/
+			this.headerIndices = parseIndices(
+				options.header, this.recordCollection.length);
+			/**
+			 *	The parsed indices for the data records in the layoutTable.  These
+			 *	are parsed indices, so any string options will be converted to a set
+			 *	of integers.
+			 *
+			 *	@property dataIndices
+			 *	@type {array}
+			 *	@final
+			 **/
+			this.dataIndices = parseIndices(
+				options.data, this.recordCollection.length);
+			// Field Indices
+			/**
+			 *	The parsed indices for the value fields in the layoutTable.  These
+			 *	are parsed indices, so any string options will be converted to a set
+			 *	of integers.
+			 *
+			 *	@property valueIndices
+			 *	@type {array}
+			 *	@final
+			 **/
+			this.valueIndices = parseIndices(
+				options.value, this.fieldCollection.length);
+			/**
+			 *	The parsed indices for the category fields in the layoutTable.  These
+			 *	are parsed indices, so any string options will be converted to a set
+			 *	of integers.
+			 *
+			 *	@property categoryIndices
+			 *	@type {array}
+			 *	@final
+			 **/
+			this.categoryIndices = parseIndices(
+				options.category, this.fieldCollection.length);
+			/**
+			 *	The parsed indices for the secondary header fields in the layoutTable.  
+			 *	These are parsed indices, so any string options will be converted to a 
+			 *	set of integers.
+			 *
+			 *	@property secondaryHeaderIndices
+			 *	@type {array}
+			 *	@final
+			 **/
+			this.secondaryHeaderIndices = options.secondaryHeader !== void 0  ?
+				parseIndices(options.secondaryHeader, this.fieldCollection.length) : void 0;
+			/**
+			 *	Specifies whether the datatable contains any secondary header fields
+			 *
+			 *	@property hasSecondaryHeaders
+			 *	@type {boolean}
+			 *	@final
+			 **/
+			this.hasSecondaryHeaders = Boolean(this.secondaryHeaderIndices);
+			
+			this.parseTitle(options);
+			this.parseUnits(options);
+			this.parseFields(options);
+			this.parseRecords(options);
+		},
 		/**
 		 *	Parses the units or the title from a regex, record index, or string.
 		 *
 		 *	@method parseUnitsOrTitle
 		 *	@param ops {object} The options for the units or the title
 		 *	@return {void}
-		 *	@private
 		 **/
-		function parseUnitsOrTitle(ops){
+		parseUnitsOrTitle : function(ops){
 			var ret = void 0;
 			if(typeof ops.text == 'string'){
 				ret = ops.text;
@@ -1225,7 +1441,7 @@
 					new RegExp(ops.regex.pattern)
 				)[ops.regex.match];
 			return typeof ret == 'string' ? $.trim(ret) : ret;
-		};
+		},
 		/**
 		 *	Parses the title, wraps parseUnitsOrTitle.  If a caption exists for
 		 *	the table, this is used in lieu of the passed options.
@@ -1233,37 +1449,35 @@
 		 *	@method parseTitle
 		 *	@param options {object} The options for the title
 		 *	@return {void}
-		 *	@private
 		 **/
-		function parseTitle(options){
+		parseTitle : function(options){
 			var caption;
 			
 			if(!options.title){
-				if((caption = this.element.find('caption')).length > 0)
+				if((caption = this.layoutTable.element.find('caption')).length > 0)
 					this.title = caption.text();
 				else
 					this.title = void 0
 			}
 			else{
-				this.title = parseUnitsOrTitle.call(this, options.title);
+				this.title = this.parseUnitsOrTitle.call(this, options.title);
 			}
 			
-		};
+		},
 		/**
 		 *	Parses the units, wraps parseUnitsOrTitle.
 		 *
 		 *	@method parseUnits
 		 *	@param options {object} The options for the units
 		 *	@return {void}
-		 *	@private
 		 **/
-		function parseUnits(options){
+		parseUnits : function(options){
 			if(options.units === void 0){
 				this.units = void 0;
 			}else{
-				this.units = parseUnitsOrTitle.call(this, options.units);
+				this.units = this.parseUnitsOrTitle.call(this, options.units);
 			}
-		};
+		},
 		/**
 		 *	Parses the fields in the table based on the passed options.  Fields are
 		 *	divided into three SparseDataCollections, one for category fields, one
@@ -1274,9 +1488,10 @@
 		 *	@return {void}
 		 *	@private
 		 **/
-		function parseFields(options){
+		parseFields : function(options){
 			var categoryFields = {},
 			valueFields = {},
+			secondaryHeaderFields = {},
 			i, index, field, cellCollection;
 			
 			for(var i=0; i< this.categoryIndices.length; i++){
@@ -1287,7 +1502,8 @@
 					'dataCells' : cellCollection.getUniqueCells(this.dataIndices),
 					'headerCells' : cellCollection.getUniqueCells(this.headerIndices),
 					'isCategory' : true,
-					'isValue' : false
+					'isValue' : false,
+					'isSecondaryHeader' : false
 				});
 			}
 			for(var i=0; i< this.valueIndices.length; i++){
@@ -1299,21 +1515,35 @@
 					'headerCells' : cellCollection.getUniqueCells(this.headerIndices),
 					'isCategory' : false,
 					'isValue' : true,
+					'isSecondaryHeader' : false,
 					'units' : typeof this.units == 'string' ?
 						this.units : typeof this.units != 'undefined' ?
 						this.units.cells[index].getValue() : ''
 				});
 			}
-			
+			if(this.hasSecondaryHeaders){
+				for(var i=0; i< this.secondaryHeaderIndices.length; i++){
+				index = this.secondaryHeaderIndices[i];
+				cellCollection = this.fieldCollection[index];
+				secondaryHeaderFields[index] = field = new Field({
+					'cellCollection' : cellCollection,
+					'dataCells' : cellCollection.getUniqueCells(this.dataIndices),
+					'headerCells' : cellCollection.getUniqueCells(this.headerIndices),
+					'isCategory' : false,
+					'isValue' : false,
+					'isSecondaryHeader' : true
+				});
+			}
+			}
 			/**
 			 *	A collection of all Fields parsed from the table.
 			 *
 			 *	@property fields
 			 *	@type {SparseDataCollection}
-			 *	@readOnly
+			 *	@final
 			 **/
 			this.fields = new SparseDataCollection({
-				'values' : $.extend({}, categoryFields, valueFields),
+				'values' : $.extend({}, categoryFields, valueFields, secondaryHeaderFields),
 				'orderBy' : 'ascending'
 			});
 			/**
@@ -1321,24 +1551,35 @@
 			 *
 			 *	@property categoryFields
 			 *	@type {SparseDataCollection}
-			 *	@readOnly
+			 *	@final
 			 **/
 			this.categoryFields = new SparseDataCollection({
 				'values' : categoryFields,
 				'orderBy' : 'ascending'
 			});
 			/**
-			 *	A collection of all value parsed from the table.
+			 *	A collection of all value fields parsed from the table.
 			 *
 			 *	@property valueFields
 			 *	@type {SparseDataCollection}
-			 *	@readOnly
+			 *	@final
 			 **/
 			this.valueFields = new SparseDataCollection({
 				'values' : valueFields,
 				'orderBy' : 'ascending'
 			});
-		};
+			/**
+			 *	A collection of all secondary header fields parsed from the table.
+			 *
+			 *	@property secondaryHeaderFields
+			 *	@type {SparseDataCollection}
+			 *	@final
+			 **/
+			this.secondaryHeaderFields = new SparseDataCollection({
+				'values' : secondaryHeaderFields,
+				'orderBy' : 'ascending'
+			});
+		},
 		/**
 		 *	Parses the records in the table based on the passed options.  Records are
 		 *	divided into three SparseDataCollections, one for header records, one for 
@@ -1349,7 +1590,7 @@
 		 *	@return {void}
 		 *	@private
 		 **/
-		function parseRecords(options){
+		parseRecords : function(options){
 			var headerRecords = {},
 			dataRecords = {},
 			properties, i, index, record, cellCollection, values, field;
@@ -1367,6 +1608,8 @@
 					'isData' : false,
 					'categoryCells' : cellCollection.getUniqueCells(this.categoryIndices),
 					'valueCells' : cellCollection.getUniqueCells(this.valueIndices),
+					'secondaryHeaderCells' : this.hasSecondaryHeaders ?
+						cellCollection.getUniqueCells(this.secondaryHeaderIndices) : void 0,
 					'values' : values
 				});
 			}
@@ -1383,6 +1626,8 @@
 					'isData' : false,
 					'categoryCells' : cellCollection.getUniqueCells(this.categoryIndices),
 					'valueCells' : cellCollection.getUniqueCells(this.valueIndices),
+					'secondaryHeaderCells' : this.hasSecondaryHeaders ?
+						cellCollection.getUniqueCells(this.secondaryHeaderIndices) : void 0,
 					'values' : values
 				});
 			}
@@ -1391,7 +1636,7 @@
 			 *
 			 *	@property records
 			 *	@type {SparseDataCollection}
-			 *	@readOnly
+			 *	@final
 			 **/
 			this.records = new SparseDataCollection({
 				'values' : $.extend({}, headerRecords, dataRecords),
@@ -1402,7 +1647,7 @@
 			 *
 			 *	@property headerRecords
 			 *	@type {SparseDataCollection}
-			 *	@readOnly
+			 *	@final
 			 **/
 			this.headerRecords = new SparseDataCollection({
 				'values' : headerRecords,
@@ -1413,130 +1658,14 @@
 			 *
 			 *	@property dataRecords
 			 *	@type {SparseDataCollection}
-			 *	@readOnly
+			 *	@final
 			 **/
 			this.dataRecords = new SparseDataCollection({
 				'values' : dataRecords,
 				'orderBy' : 'ascending'
 			});
-		};
-		
-		return createClass({
-			/**
-			 *	LayoutTable Constructor Function
-			 *
-			 *	@method init
-			 *	@param layoutTable {LayoutTable} The LayoutTable instance that proxies
-			 *	the physical table for this DataTable instance.
-			 *	@param options {object} The options object for parsing the data out of
-			 *	the LayoutTable.  See the jQuery.autoChart module for a description of
-			 *	the options and defaults.
-			 **/
-			init : function(layoutTable, options){
-				/**
-				 *	The options object passed to the constructor function.
-				 *
-				 *	@property options
-				 *	@type {object}
-				 *	@readOnly
-				 **/
-				this.options = options;
-				// Digest the options
-				/**
-				 *	The layout type of this datatable as defined in the options
-				 *	object.
-				 *
-				 *	@property layout
-				 *	@type {string}
-				 *	@readOnly
-				 **/
-				this.layout = options.layout;
-				/**
-				 *	The LayoutTable that proxies the physical table for this data table.
-				 *
-				 *	@property layoutTable
-				 *	@type {LayoutTable}
-				 *	@readOnly
-				 **/
-				this.layoutTable = layoutTable;
-				/**
-				 *	The CellCollection that contains the field information for this table.
-				 *	If the layout is 'vertical', then the fieldCollection will be the
-				 *	columns from the layoutTable.  If the layout 'horizontal', then the
-				 *	fieldCollection will be the rows from the layoutTable.
-				 *
-				 *	@property fieldCollection
-				 *	@type {CellCollection}
-				 *	@readOnly
-				 **/
-				this.fieldCollection = this.layout == 'vertical' ?
-					layoutTable.columns : layoutTable.rows,
-				/**
-				 *	The CellCollection that contains the record information for this table.
-				 *	If the layout is 'vertical', then the recordCollection will be the
-				 *	rows from the layoutTable.  If the layout 'horizontal', then the
-				 *	recordCollection will be the columns from the layoutTable.
-				 *
-				 *	@property recordCollection
-				 *	@type {CellCollection}
-				 *	@readOnly
-				 **/
-				this.recordCollection = this.layout == 'vertical' ?
-					layoutTable.rows : layoutTable.columns,
-				// Record Indices;
-				/**
-				 *	The parsed indices for the header records in the layoutTable.  These
-				 *	are parsed indices, so any string options will be converted to a set
-				 *	of integers.
-				 *
-				 *	@property headerIndices
-				 *	@type {array}
-				 *	@readOnly
-				 **/
-				this.headerIndices = parseIndices(
-					options.header, this.recordCollection.length);
-				/**
-				 *	The parsed indices for the data records in the layoutTable.  These
-				 *	are parsed indices, so any string options will be converted to a set
-				 *	of integers.
-				 *
-				 *	@property dataIndices
-				 *	@type {array}
-				 *	@readOnly
-				 **/
-				this.dataIndices = parseIndices(
-					options.data, this.recordCollection.length);
-				// Field Indices
-				/**
-				 *	The parsed indices for the value fields in the layoutTable.  These
-				 *	are parsed indices, so any string options will be converted to a set
-				 *	of integers.
-				 *
-				 *	@property valueIndices
-				 *	@type {array}
-				 *	@readOnly
-				 **/
-				this.valueIndices = parseIndices(
-					options.value, this.fieldCollection.length);
-				/**
-				 *	The parsed indices for the category fields in the layoutTable.  These
-				 *	are parsed indices, so any string options will be converted to a set
-				 *	of integers.
-				 *
-				 *	@property categoryIndices
-				 *	@type {array}
-				 *	@readOnly
-				 **/
-				this.categoryIndices = parseIndices(
-					options.category, this.fieldCollection.length);
-				
-				parseTitle.call(this, options);
-				parseUnits.call(this, options);
-				parseFields.call(this, options);
-				parseRecords.call(this, options);
-			}
-		});
-	}();
+		}
+	});
 	
 	/**
 	 *	Proxies a collection of DataTable instances for a single physical table.
@@ -1560,8 +1689,8 @@
 		 *	generate the individual DataTable instances proxied by this collection.
 		 **/
 		init : function(tableEle, options, dataTableClass){
-			dataTableClass = dataTableClass || DataTable;
 			var i;
+			dataTableClass = dataTableClass || DataTable;
 			
 			this.options = $.map(
 				$.isArray(options) ? options : [options],
@@ -1569,6 +1698,7 @@
 					return $.extend(true, {}, defaultOptions, o);
 				}
 			);
+			
 			this.dataTables = [];
 			this.layoutTable = new LayoutTable(tableEle)
 			
@@ -1607,25 +1737,34 @@
 	var XAxis = function(){
 		
 		function parseCategories(properties){
-			var categories = this.categories,
-			dateCategories = [],
-			isDateTime = true;
+			var categories = [],
+			dateCategories = []
+			categoriesHash = {};
+			this.isDateTime = this.autoParseCategories && !isNaN(Date.parse(this.categories[0]));
 			
-			for(i=0; i<categories.length && isDateTime; i++){
-				var dateVal = Date.parse(categories[i])
-				isDateTime &= !isNaN(dateVal);
-				dateCategories.push(dateVal);
+			if(this.isDateTime){
+				for(i=0; i<this.categories.length; i++){
+					dateCategories.push(Date.parse(this.categories[i]));
+				}
+					this.dateCategories = dateCategories;
 			}
-			if(isDateTime)
-				this.dateCategories = dateCategories;
-			this.isDateTime = isDateTime;
+			else{
+				for(i=0; i<this.categories.length; i++){
+					if(!categoriesHash.hasOwnProperty(this.categories[i])){
+						categories.push(this.categories[i]);
+						categoriesHash[this.categories[i]] = true;
+					}
+				}
+				this.categories = categories;
+			}
 		}
 	
 		return createClass({
 			init : function(properties){
 				this.$super(properties);
 				this.applyProperties([
-					'categories'
+					'categories',
+					'autoParseCategories'
 				], properties);
 				parseCategories.call(this);
 			}
@@ -1644,19 +1783,26 @@
 	var ChartableTable = createClass({
 		getChartData : function(fieldIndices){
 			var table = this,
-			xAxis = {}
+			xAxis = {},
 			series = [],
 			yAxes = [],
 			uniqueUnits = [],
 			unitsMap = {},
-			nonZeroMin = false;
+			nonZeroMin = false,
+			dataRegex = /[^\d\.]/g,
+			fieldTitle;
 			
 			fieldIndices = parseIndices(
 				fieldIndices, this.fieldCollection.length);
 			
 			series = $.map(fieldIndices, function(i, j){
 				var field = table.valueFields.get(i),
-				serie, axisIndex;
+				secondaryHeaderField, dataCell, leastIndices, seriesOptions,
+				serie, series, axisIndex, l, m, n, dataCells;
+				
+				fieldTitle = $.map(field.headerCells, function(c, m){
+							return c.getValue();
+					}).join(' ');
 				
 				if(field.units in unitsMap){
 					axisIndex = unitsMap[field.units];
@@ -1666,25 +1812,57 @@
 					uniqueUnits.push(field.units);
 				}
 				if(field){
-					serie = new Series({
-						'title' : $.map(field.headerCells, function(c, i){
-							return c.getValue();
-						}).join(' '),
-						'data' : $.map(field.dataCells, function(c, i){
-							var val = parseFloat(
-								c.getValue()
-								// Strip letters, commas, and spaces
-								.replace(/[A-Za-z,\s]/g, '')
-							)
-							nonZeroMin |= val < 0;
-							return !isNaN(val) ? val : [null];
-						}),
-						'units' : field.units,
-						'axis' : axisIndex
-					}); 
+					if(table.secondaryHeaderFields.getLength() > 0){
+						series = [];
+						seriesMap = {};
+						$.each(table.dataIndices, function(k, l){
+							var currentRecord = table.dataRecords.get(l),
+							currentDatum = parseFloat(field.dataCells[k].getValue().replace(dataRegex, '')),
+							secondaryTitle = $.map(currentRecord.secondaryHeaderCells, function(c, n){
+									return c.getValue();
+								}).join(' ');
+							
+							currentDatum = !isNaN(currentDatum) ? currentDatum : null;
+							
+							var currentSeriesOpts = {
+								'title' : fieldIndices.length > 1 ? fieldTitle + ' ' + secondaryTitle : secondaryTitle,
+								'data' : [currentDatum],
+								'units' : field.units,
+								'axis' : axisIndex
+							};
+							
+							if(currentSeriesOpts.title in seriesMap){
+								seriesMap[currentSeriesOpts.title].data.push(currentDatum);
+							}
+							else{
+								series.push(currentSeriesOpts);
+								seriesMap[currentSeriesOpts.title] = currentSeriesOpts;
+							}
+						})
+						return series;
+					}
+					else{
+						serie = new Series({
+							'title' : $.map(field.headerCells, function(c, i){
+								return c.getValue();
+							}).join(' '),
+							'data' : $.map(field.dataCells, function(c, i){
+								var val = parseFloat(
+									c.getValue()
+									// Strip letters, commas, and spaces
+									.replace(dataRegex, '')
+								)
+								nonZeroMin |= val < 0;
+								return !isNaN(val) ? val : [null];
+							}),
+							'units' : field.units,
+							'axis' : axisIndex
+						}); 
+					}
+					return serie;
 				}
-				
-				return serie;
+				else
+					return [];
 			});
 			
 			xAxis = new XAxis({
@@ -1698,8 +1876,9 @@
 					var record = this;
 					return $.map(record.categoryCells, function(cell){
 						return cell.getValue()
-					}).join(' / ');
-				})
+					}).join(' ');
+				}),
+				'autoParseCategories' : this.options.autoParseCategories
 			});
 			
 			yAxes = $.map(uniqueUnits, function(u, i){
@@ -1711,7 +1890,7 @@
 			});
 			
 			return {
-				'title' : this.title,
+				'title' : this.title + (fieldIndices.length == 1 ? ', ' + fieldTitle : ''),
 				'series' : series,
 				'xAxis' : xAxis,
 				'yAxes' : yAxes
@@ -1783,11 +1962,11 @@
 		 *	of indices disables all checkboxes at the associated field indices.
 		 **/
 		init : function(tableEle, options, onCharted, onSeriesSelected){
-			var chartableTable, valueCell, checkboxes,
-			addRows = [], addColumns = [], addGroup, addArray,
+			var chartableTable, valueCell, checkboxes, categoryCell,
+			addRows = [], addColumns = [], addGroup, addArray, cloneCells,
 			addIndex, categoryCellStartIndex, categoryCellEndIndex,
 			buttons, checkbox, valueIndex, buttonCell, i, j, k,
-			rowsAdded, columnsAdded, isMultiChartTable;
+			rowsAdded, columnsAdded, isMultiChartTable, intersects;
 			
 			this.$super(tableEle, options, ChartableTable);
 			
@@ -1804,30 +1983,34 @@
 					chartableTable.headerIndices[chartableTable.headerIndices.length - 1];
 				// The current row/column being processed, represented by an array
 				addArray = addGroup[addIndex] || (addGroup[addIndex] = []);
-				// The category cell where we will add the graph and clear buttons for
-				// multi-chartable tables, or a spacer for single chartable tables
-				categoryCell = new Cell(
-					{
-						// If we are adding a column, check the cell in the previous column to see if
-						// it is a th, if so create the category cell as a th, otherwise as a td
-						'element' : chartableTable.layout == 'horizontal' &&
-							chartableTable.layoutTable.rows[chartableTable.categoryIndices[0]].cells[0].element.is('th') ? $('<th></th>') :
-							$('<td></td>')
-					}
-				);
 				// The row/column indices where the category cell will start and end
-				categoryCellStartIndex = chartableTable.categoryIndices[0];
+				categoryCellStartIndex = chartableTable.hasSeconaryHeaders ?
+					Math.min(chartableTable.categoryIndices[0], chartableTable.secondaryHeaderIndices[0]) :
+					chartableTable.categoryIndices[0];
 				categoryCellEndIndex = chartableTable.valueIndices[0];
 				
 				// Loop from the start and end indices for the category cell, adding it
 				// to that position in the addArray, and incrementing its column/rowspan
 				// for vertical/horizontal tables
 				for(j=categoryCellStartIndex; j<categoryCellEndIndex; j++){
-					addArray[j] = categoryCell;
-					if(j < categoryCellEndIndex - 1)
+					// The category cell where we will add the graph and clear buttons for
+					// multi-chartable tables, or a spacer for single chartable tables
+					cloneCells = chartableTable.fieldCollection[j].cells;
+					categoryCell = new Cell(
+						{
+							'element' : cloneCells[Math.min(cloneCells.length - 1, addIndex + 1)].element.clone().empty().addClass('category_cell')
+						}
+					);
+					categoryCell.setColspan(1, true);
+					categoryCell.setRowspan(1, true);
+					
+					intersects = chartableTable.fieldCollection[j].intersects(addIndex + 1);
+					addArray[j] = intersects || categoryCell;
+					if(intersects){
 						chartableTable.layout == 'vertical' ?
-							categoryCell.incrementColspan(true) :
-							categoryCell.incrementRowspan(true);
+							intersects.incrementRowspan(true) :
+							intersects.incrementColspan(true);
+					}
 				}
 				// If this is a multichartable table, create a jQuery collection to store the
 				// checkboxes, used later when generating the charting buttons.
@@ -1838,7 +2021,10 @@
 				// chartable tables
 				for(j=0; j<chartableTable.valueIndices.length; j++){
 					valueIndex = chartableTable.valueIndices[j];
-					addArray[valueIndex] = valueCell = new Cell();
+					cloneCells = chartableTable.fieldCollection[valueIndex].cells;
+					addArray[valueIndex] = valueCell = new Cell({
+						'element' : cloneCells[Math.min(cloneCells.length - 1, addIndex + 1)].element.clone().empty()
+					});
 					if(isMultiChartTable){
 						checkboxes = checkboxes.add(checkbox = this.generateMultiChartCheckbox(valueIndex));
 						valueCell.element.append(checkbox);
@@ -1949,7 +2135,7 @@
 		},
 		
 		generateSingleChartButton : function(valueIndex, chartableTable, onCharted){
-			button = $('<button></button>').text('Graph');
+			button = $('<button></button>').text('G');
 			
 			button.click(function(){
 				onCharted.call(chartableTable, [valueIndex]);
