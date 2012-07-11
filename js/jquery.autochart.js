@@ -124,7 +124,11 @@
 		chartContainerStyles : {
 			height : '600px',
 			width : '800px'
-		}
+		},
+		addControlCells : true,
+		graphButtonHTML : '<button>Graph</button>',
+		clearButtonHTML : '<button>Clear</button>',
+		singleChartButtonHTML : '<button>Graph</button>'
 	};
 	
 	/////////////////////
@@ -1976,68 +1980,101 @@
 				// Is this a multichartable tabl
 				isMultiChartTable = chartableTable.options.multiChart !== void 0 ?
 					chartableTable.options.multiChart : chartableTable.valueFields.getLength() > 1;
-				// Are we adding columns or rows
-				addGroup =  chartableTable.layout == 'vertical' ? addRows : addColumns;
-				// The index for the ror/column to be added
-				addIndex = chartableTable.options.controlsIndex ||
-					chartableTable.headerIndices[chartableTable.headerIndices.length - 1];
-				// The current row/column being processed, represented by an array
-				addArray = addGroup[addIndex] || (addGroup[addIndex] = []);
-				// The row/column indices where the category cell will start and end
-				categoryCellStartIndex = chartableTable.hasSeconaryHeaders ?
-					Math.min(chartableTable.categoryIndices[0], chartableTable.secondaryHeaderIndices[0]) :
-					chartableTable.categoryIndices[0];
-				categoryCellEndIndex = chartableTable.valueIndices[0];
-				
-				// Loop from the start and end indices for the category cell, adding it
-				// to that position in the addArray, and incrementing its column/rowspan
-				// for vertical/horizontal tables
-				for(j=categoryCellStartIndex; j<categoryCellEndIndex; j++){
-					// The category cell where we will add the graph and clear buttons for
-					// multi-chartable tables, or a spacer for single chartable tables
-					cloneCells = chartableTable.fieldCollection[j].cells;
-					categoryCell = new Cell(
-						{
-							'element' : cloneCells[Math.min(cloneCells.length - 1, addIndex + 1)].element.clone().empty().addClass('category_cell')
-						}
-					);
-					categoryCell.setColspan(1, true);
-					categoryCell.setRowspan(1, true);
+				if(chartableTable.options.addControlCells !== false){
+					// Are we adding columns or rows
+					addGroup =  chartableTable.layout == 'vertical' ? addRows : addColumns;
+					// The index for the ror/column to be added
+					addIndex = chartableTable.options.controlsIndex ||
+						chartableTable.headerIndices[chartableTable.headerIndices.length - 1];
+					// The current row/column being processed, represented by an array
+					addArray = addGroup[addIndex] || (addGroup[addIndex] = []);
+					// The row/column indices where the category cell will start and end
+					categoryCellStartIndex = chartableTable.hasSeconaryHeaders ?
+						Math.min(chartableTable.categoryIndices[0], chartableTable.secondaryHeaderIndices[0]) :
+						chartableTable.categoryIndices[0];
+					categoryCellEndIndex = chartableTable.valueIndices[0];
 					
-					intersects = chartableTable.fieldCollection[j].intersects(addIndex + 1);
-					addArray[j] = intersects || categoryCell;
-					if(intersects){
-						chartableTable.layout == 'vertical' ?
-							intersects.incrementRowspan(true) :
-							intersects.incrementColspan(true);
+					// Loop from the start and end indices for the category cell, adding it
+					// to that position in the addArray, and incrementing its column/rowspan
+					// for vertical/horizontal tables
+					for(j=categoryCellStartIndex; j<categoryCellEndIndex; j++){
+						// The category cell where we will add the graph and clear buttons for
+						// multi-chartable tables, or a spacer for single chartable tables
+						cloneCells = chartableTable.fieldCollection[j].cells;
+						categoryCell = new Cell(
+							{
+								'element' : cloneCells[Math.min(cloneCells.length - 1, addIndex)].element.clone().empty().addClass('category_cell')
+							}
+						);
+						categoryCell.setColspan(1, true);
+						categoryCell.setRowspan(1, true);
+						
+						intersects = chartableTable.fieldCollection[j].intersects(addIndex + 1);
+						addArray[j] = intersects || categoryCell;
+						if(intersects){
+							chartableTable.layout == 'vertical' ?
+								intersects.incrementRowspan(true) :
+								intersects.incrementColspan(true);
+						}
 					}
-				}
-				// If this is a multichartable table, create a jQuery collection to store the
-				// checkboxes, used later when generating the charting buttons.
-				if(isMultiChartTable)
-					checkboxes = $();
-				
-				// Loop through the value indices, adding cells and checkboxes/buttons for multi/single
-				// chartable tables
-				for(j=0; j<chartableTable.valueIndices.length; j++){
-					valueIndex = chartableTable.valueIndices[j];
-					cloneCells = chartableTable.fieldCollection[valueIndex].cells;
-					addArray[valueIndex] = valueCell = new Cell({
-						'element' : cloneCells[Math.min(cloneCells.length - 1, addIndex + 1)].element.clone().empty()
-					});
+					// If this is a multichartable table, create a jQuery collection to store the
+					// checkboxes, used later when generating the charting buttons.
+					if(isMultiChartTable)
+						checkboxes = $();
+					
+					// Loop through the value indices, adding cells and checkboxes/buttons for multi/single
+					// chartable tables
+					for(j=0; j<chartableTable.valueIndices.length; j++){
+						valueIndex = chartableTable.valueIndices[j];
+						cloneCells = chartableTable.fieldCollection[valueIndex].cells;
+						addArray[valueIndex] = valueCell = new Cell({
+							'element' : cloneCells[Math.min(cloneCells.length - 1, addIndex)].element.clone().empty()
+						});
+						valueCell.setColspan(1, true);
+						valueCell.setRowspan(1, true);
+						if(isMultiChartTable){
+							checkboxes = checkboxes.add(checkbox = this.generateMultiChartCheckbox(valueIndex));
+							valueCell.element.append(checkbox);
+						}
+						else{
+							valueCell.element.append(this.generateSingleChartButton(valueIndex, chartableTable, onCharted))
+						}
+					}
+					// If this is a multi-chartable table, create and add the charting buttons
 					if(isMultiChartTable){
-						checkboxes = checkboxes.add(checkbox = this.generateMultiChartCheckbox(valueIndex));
-						valueCell.element.append(checkbox);
-					}
-					else{
-						valueCell.element.append(this.generateSingleChartButton(valueIndex, chartableTable, onCharted))
+						buttons = this.generateMultiChartButtons(checkboxes, chartableTable, onCharted, onSeriesSelected);
+						categoryCell.element.append(buttons.graphButton);
+						categoryCell.element.append(buttons.clearButton);
 					}
 				}
-				// If this is a multi-chartable table, create and add the charting buttons
-				if(isMultiChartTable){
-					buttons = this.generateMultiChartButtons(checkboxes, chartableTable, onCharted, onSeriesSelected);
-					categoryCell.element.append(buttons.graphButton);
-					categoryCell.element.append(buttons.clearButton);
+				else{
+					var controlsIndex = chartableTable.options.controlsIndex ||
+						chartableTable.headerIndices[chartableTable.headerIndices.length - 1];;
+					
+					categoryCell = chartableTable.recordCollection[controlsIndex].cells[chartableTable.valueIndices[0] - 1];
+					
+					if(isMultiChartTable)
+						checkboxes = $();
+					
+					// Loop through the value indices, adding cells and checkboxes/buttons for multi/single
+					// chartable tables
+					for(j=0; j<chartableTable.valueIndices.length; j++){
+						valueIndex = chartableTable.valueIndices[j];
+						valueCell = chartableTable.fieldCollection[valueIndex].cells[controlsIndex];
+						if(isMultiChartTable){
+							checkboxes = checkboxes.add(checkbox = this.generateMultiChartCheckbox(valueIndex));
+							valueCell.element.append(checkbox);
+						}
+						else{
+							valueCell.element.append(this.generateSingleChartButton(valueIndex, chartableTable, onCharted))
+						}
+					}
+					
+					if(isMultiChartTable){
+						buttons = this.generateMultiChartButtons(checkboxes, chartableTable, onCharted, onSeriesSelected);
+						categoryCell.element.append(buttons.graphButton);
+						categoryCell.element.append(buttons.clearButton);
+					}
 				}
 			}
 			
@@ -2081,8 +2118,8 @@
 		},
 		
 		generateMultiChartButtons : function(checkboxes, chartableTable, onCharted, onSeriesSelected){
-			var graphButton = $('<button></button>').text('Graph'),
-			clearButton = $('<button></button>').text('Clear');
+			var graphButton = $(chartableTable.options.graphButtonHTML),
+			clearButton = $(chartableTable.options.clearButtonHTML);
 			
 			graphButton.click(function(){
 				var checked = checkboxes.filter(':checked'),
@@ -2135,7 +2172,7 @@
 		},
 		
 		generateSingleChartButton : function(valueIndex, chartableTable, onCharted){
-			button = $('<button></button>').text('G');
+			button = $(chartableTable.options.singleChartButtonHTML);
 			
 			button.click(function(){
 				onCharted.call(chartableTable, [valueIndex]);
