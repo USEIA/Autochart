@@ -88,7 +88,12 @@
  *			
  *			// The maximum number of value fields units that can be charted at one time.
  *			
- *			maxChartableUnits : 4
+ *			maxChartableUnits : 4,
+ *
+ *			// Specifies whether or not to try and parse the categories as dates for
+ *			// for charting purposes.
+ *
+ *			autoParseCategories : true,
  *			
  *			// A set of styles to be applied to the chart container.  Any valid css styles
  *			// can be used here.
@@ -96,7 +101,21 @@
  *			chartContainerStyles : {
  *				height : '600px',
  *				width : '800px'
- *			}
+ *			},
+ *
+ *			// Specifies whether or not to add cells to the table for controls.  If set
+ *			// to false, then controls are appended to the existing cells at the controls
+ *			// index.
+ *			
+ *			addControlCells : true,
+ *
+ *			// Options to override the html that generates the charting controls in an
+ *			// InteractiveChartableTable.
+ *
+ *			graphButtonHTML : '<button>Graph</button>',
+ *			clearButtonHTML : '<button>Clear</button>',
+ *			singleChartButtonHTML : '<button>Graph</button>',
+ *			
  *		};
  *	
  *	@module jQuery.autoChart
@@ -117,6 +136,7 @@
 		footer : void 0,
 		category : void 0,
 		value : void 0,
+		secondaryHeader : void 0,
 		controlsIndex : void 0,
 		multiChart : void 0,
 		maxChartableUnits : 4,
@@ -130,6 +150,8 @@
 		clearButtonHTML : '<button>Clear</button>',
 		singleChartButtonHTML : '<button>Graph</button>'
 	};
+	
+	var userDefinedDefaultOptions = {};
 	
 	/////////////////////
 	// Utility Methods //
@@ -460,12 +482,14 @@
 		getValue : function(){
 			return $.trim(this.element.html()
 				// Strip Sub and Sup tags
-				.replace(/<sup>.*?<\/sup>/g, '')
-				.replace(/<sub>.*?<\/sub>/g, '')
+				.replace(/<sup>.*?<\/sup>/gi, '')
+				.replace(/<sub>.*?<\/sub>/gi, '')
 				// Replace spaces with spaces
-				.replace(/&nbsp;/g, ' ')
+				.replace(/&nbsp;/gi, ' ')
+				// Strip hyphenated line breaks
+				.replace(/-<\s*br\s*\/?>/gi, '')
 				// Replace line breaks with spaces
-				.replace(/<\s*br\s*\/?>/g, ' ')
+				.replace(/<\s*br\s*\/?>/gi, ' ')
 				// Strip all other tags
 				.replace(/<.*?>/g, ''));
 		},
@@ -650,6 +674,27 @@
 					if(!lastElement || self.cells[i].element != lastElement){
 						lastElement = self.cells[i].element
 						return self.cells[i];
+					}
+					else
+						return null;
+					
+				}
+			);
+		},
+		/**
+		 *	Returns an array of unique indices for a given set of non-unique indices.
+		 *
+		 *	@method getUniqueCellIndices
+		 *	@param cell {array} A an array of indices to retrive unique indices where unique
+		 *	cells occur in the cell collection.
+		 *	@return {array} An array of integers representing indices in the collection.
+		 **/
+		getUniqueIndices : function(indices){
+			var self = this, lastElement;
+			return $.map(indices, function(i, j){
+					if(!lastElement || self.cells[i].element != lastElement){
+						lastElement = self.cells[i].element
+						return i;
 					}
 					else
 						return null;
@@ -1699,7 +1744,7 @@
 			this.options = $.map(
 				$.isArray(options) ? options : [options],
 				function(o){
-					return $.extend(true, {}, defaultOptions, o);
+					return $.extend(true, {}, defaultOptions, userDefinedDefaultOptions, o);
 				}
 			);
 			
@@ -1744,15 +1789,22 @@
 			var categories = [],
 			dateCategories = []
 			categoriesHash = {};
-			this.isDateTime = this.autoParseCategories && !isNaN(Date.parse(this.categories[0]));
 			
-			if(this.isDateTime){
-				for(i=0; i<this.categories.length; i++){
-					dateCategories.push(Date.parse(this.categories[i]));
+			if(this.autoParseCategories){
+				if(this.isDateTime = !isNaN(Date.parse(this.categories[0]))){
+					for(i=0; i<this.categories.length; i++){
+						dateCategories.push(Date.parse(this.categories[i]));
+					}
+						this.dateCategories = dateCategories;
 				}
-					this.dateCategories = dateCategories;
+				else if(this.isDateTime = !isNaN(Date.parse('01/01/' + this.categories[0]))){
+					for(i=0; i<this.categories.length; i++){
+						dateCategories.push(Date.parse('01/01/' + this.categories[i]));
+					}
+						this.dateCategories = dateCategories;
+				}
 			}
-			else{
+			if(!this.isDateTime){
 				for(i=0; i<this.categories.length; i++){
 					if(!categoriesHash.hasOwnProperty(this.categories[i])){
 						categories.push(this.categories[i]);
@@ -1793,7 +1845,7 @@
 			uniqueUnits = [],
 			unitsMap = {},
 			nonZeroMin = false,
-			dataRegex = /[^\d\.]/g,
+			dataRegex = /[\,\sA-Za-z]/g,
 			fieldTitle;
 			
 			fieldIndices = parseIndices(
@@ -1802,17 +1854,21 @@
 			series = $.map(fieldIndices, function(i, j){
 				var field = table.valueFields.get(i),
 				secondaryHeaderField, dataCell, leastIndices, seriesOptions,
-				serie, series, axisIndex, l, m, n, dataCells;
+				serie, series, axisIndex, l, m, n, dataCells, unitsKey;
 				
-				fieldTitle = $.map(field.headerCells, function(c, m){
-							return c.getValue();
+				fieldTitle = $.map(field.cellCollection.getUniqueIndices(table.headerIndices), function(k, l){
+						// Use the cached value instead of the cell's current
+						// value to account for additions to the cell content
+						// due to the addition of charting controls.
+						return table.records.get(k).values[i];
 					}).join(' ');
 				
-				if(field.units in unitsMap){
-					axisIndex = unitsMap[field.units];
+				var unitsKey = field.units.toLowerCase();
+				if(unitsKey in unitsMap){
+					axisIndex = unitsMap[unitsKey];
 				}
 				else{
-					axisIndex = unitsMap[field.units] = uniqueUnits.length;
+					axisIndex = unitsMap[unitsKey] = uniqueUnits.length;
 					uniqueUnits.push(field.units);
 				}
 				if(field){
@@ -1920,11 +1976,11 @@
 				'legend' : {
 					'enabled' : chartData.series.length > 1
 				},
-				'xAxis' : {
+				'xAxis' : $.extend(true, {
 					'categories' : chartData.xAxis.isDateTime ? void 0 :
 						chartData.xAxis.categories,
 					'type' : chartData.xAxis.isDateTime  ? 'datetime' : 'linear'
-				},
+				}, baseOptions.xAxis),
 				'yAxis' : $.map(chartData.yAxes, function(a, i){
 					return $.extend(true, {
 						'title' : {
@@ -1989,9 +2045,9 @@
 					// The current row/column being processed, represented by an array
 					addArray = addGroup[addIndex] || (addGroup[addIndex] = []);
 					// The row/column indices where the category cell will start and end
-					categoryCellStartIndex = chartableTable.hasSeconaryHeaders ?
+					categoryCellStartIndex = /*chartableTable.hasSeconaryHeaders ?
 						Math.min(chartableTable.categoryIndices[0], chartableTable.secondaryHeaderIndices[0]) :
-						chartableTable.categoryIndices[0];
+						chartableTable.categoryIndices[0]*/0;
 					categoryCellEndIndex = chartableTable.valueIndices[0];
 					
 					// Loop from the start and end indices for the category cell, adding it
@@ -2010,7 +2066,7 @@
 						categoryCell.setRowspan(1, true);
 						
 						intersects = chartableTable.fieldCollection[j].intersects(addIndex + 1);
-						addArray[j] = intersects || categoryCell;
+						addArray[j] = addArray[j] || intersects || categoryCell;
 						if(intersects){
 							chartableTable.layout == 'vertical' ?
 								intersects.incrementRowspan(true) :
@@ -2028,7 +2084,7 @@
 						valueIndex = chartableTable.valueIndices[j];
 						cloneCells = chartableTable.fieldCollection[valueIndex].cells;
 						addArray[valueIndex] = valueCell = new Cell({
-							'element' : cloneCells[Math.min(cloneCells.length - 1, addIndex)].element.clone().empty()
+							'element' : cloneCells[Math.min(cloneCells.length - 1, addIndex)].element.clone().empty().addClass('value_cell')
 						});
 						valueCell.setColspan(1, true);
 						valueCell.setRowspan(1, true);
@@ -2222,9 +2278,10 @@
 				// loop through the selected indices and generate an array of unique units
 				unitsList = $.map(indices, function(i, j){
 					var field = table.valueFields.get(i);
+					var unitsKey = field.units.toLowerCase();
 					
-					if(!(field.units in unitsMap)){
-						unitsMap[field.units] = true;
+					if(!(unitsKey in unitsMap)){
+						unitsMap[unitsKey] = true;
 						return field.units;
 					}
 					else{
@@ -2237,7 +2294,8 @@
 				if(unitsList.length == table.options.maxChartableUnits){
 					return table.valueFields.map(function(i, j){
 						var field = this;
-						if(!(field.units in unitsMap))
+						var unitsKey = field.units.toLowerCase();
+						if(!(unitsKey in unitsMap))
 							return i
 						else
 							return null
@@ -2253,6 +2311,10 @@
 	// Plugin Functions //
 	//////////////////////
 	
+	function setOptions(options){
+		userDefinedDefaultOptions = options;
+	}
+	
 	$(function(){
 		$('table.scrape-horizontal, table.scrape-vertical').each(function(){
 			var tableEle = $(this);
@@ -2260,11 +2322,18 @@
 		});
 	});
 
-	$.fn.autoChart = function(options){
-		return new FancyboxChartableTable(this, options);
+	$.fn.autoChart = function(options, urlOverride){
+		if(urlOverride === void 0) urlOverride = 'autochart';
+		if(!urlOverride || !~window.location.search.indexOf(urlOverride + '=false'))
+			return new FancyboxChartableTable(this, options);
+		else
+			return void 0
 	};
 	
 	$.extend($.fn.autoChart, {
+		// Functions
+		'setOptions' : setOptions,
+		// Constructors
 		'TableElement' : TableElement,
 		'Cell' : Cell,
 		'CellCollection' : CellCollection,
